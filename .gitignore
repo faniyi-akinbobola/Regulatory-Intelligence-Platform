@@ -8,10 +8,14 @@ wheels/
 
 # Virtual environments
 .venv
-
-#virtualenv
 venv/
 .env/
 
-echo ".env" >> .gitignore
-echo "copilot-instructions.md" >> .gitignore
+# Environment variables
+.env
+
+# Raw regulatory documents (shared via Google Drive)
+data/raw/
+
+# macOS
+.DS_Store
