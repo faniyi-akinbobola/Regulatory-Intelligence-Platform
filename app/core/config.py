@@ -26,7 +26,8 @@ class Settings(BaseSettings):
 
     # LLM
     llm_base_url: str = "http://localhost:11434"  # Ollama default
-    llm_model_name: str = "qwen2.5:14b"
+    llm_model_name: str = "qwen2.5:14b"        # orchestrator, reasoning, auditor, critic
+    llm_small_model_name: str = "qwen2.5:7b" # jurisdiction mapper, citation verifier
 
     @property
     def postgres_url(self) -> str:
