@@ -8,13 +8,24 @@ from app.core.config import settings
 from app.db.postgres import init_db
 
 
+# @asynccontextmanager
+# async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+#     print("Starting Regulatory Intelligence Platform...")
+#     await init_db()
+#     yield
+#     print("Shutting down...")
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     print("Starting Regulatory Intelligence Platform...")
-    await init_db()
+    try:
+        await init_db()
+        print("Database connected.")
+    except Exception as e:
+        print(f"WARNING: Database not available — {e}")
+        print("Server starting without database. Some routes will not work.")
     yield
     print("Shutting down...")
-
 
 app = FastAPI(
     title="Regulatory Intelligence Platform",
