@@ -31,6 +31,9 @@ async def _run_workflow(
     try:
         _reports[report_id] = {"status": "running", "report": None, "trace": []}
 
+        if target_regulators:
+            query = f"{query} Focus on these regulators: {', '.join(target_regulators)}."
+
         result = await ComplianceService(db).analyze(
             query=query,
             session_id=uuid.UUID(report_id),
