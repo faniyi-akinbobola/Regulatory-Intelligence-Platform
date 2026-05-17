@@ -45,8 +45,5 @@ def build_workflow():
     return graph.compile()
 
 
-# Compiled graph — import this in the API route and services
+# Compiled workflow — import this in compliance_service.py
 workflow = build_workflow()
-
-# Conditional: critic can loop back if quality is poor
-workflow.add_conditional_edges("critic", route_after_critic)

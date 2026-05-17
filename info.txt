@@ -1,0 +1,97 @@
+Sessions
+Sessions have two different meanings here and you need to decide:
+
+Meaning 1 — Request-scoped session (what you need for MVP):
+Every call to /analyze-business generates a new session_id (UUID). It's passed through the workflow, stored in the audit record, and returned to the caller. That's it. No Redis needed. The caller uses the session_id to retrieve the audit trace via GET /audit-trace/{id}.
+
+Meaning 2 — Persistent conversation session (future, chat interface):
+A user has an ongoing session where follow-up queries build on previous analysis context. This requires Redis to cache the session state (prior analyses, organization context, conversation history) and a POST /sessions endpoint to create sessions explicitly. The session_id is created once and reused across multiple /analyze-business calls.
+
+For your MVP: implement Meaning 1 only. The /analyze-business request body includes an optional session_id field. If not provided, one is generated. This lets the caller chain analyses manually if needed without requiring a full session management system. Redis stays dormant for now.
+
+<!-- What the 3 Services Are For
+Qdrant — Vector database
+
+Stores document chunk embeddings + metadata (section, page, regulator, document name)
+Handles semantic search: "find regulations similar to this query"
+The Research Agent queries this exclusively
+PostgreSQL — Persistent relational storage
+
+Stores audit traces, compliance reports, session history, user data
+Structured data that needs querying, relationships, and persistence
+The audit_repository and document_repository write here
+Redis — In-memory cache + session store
+
+Stores active LangGraph workflow state during execution
+Caches frequent queries (same business question asked twice)
+Handles streaming state between FastAPI and the frontend
+Data here is ephemeral — it's not for long-term storage
+Your guess was correct: Qdrant = vector DB, Redis = session/cache, Postgres = persistent storage. -->
+
+
+User Query (via FastAPI)
+        │
+        ▼
+┌─────────────────────────────────────────┐
+│           LangGraph Workflow            │
+│                                         │
+│  graph/state.py  ← shared state object  │
+│  graph/nodes.py  ← each agent = a node  │
+│  graph/workflow.py ← edges/routing      │
+│                                         │
+│  Node 1: Orchestrator                   │
+│    └─ decomposes query, sets plan       │
+│                                         │
+│  Node 2: Jurisdiction Mapper            │
+│    └─ identifies CBN/SEC/NDIC/FIRS      │
+│                                         │
+│  Node 3: Research Agent                 │
+│    └─ calls RetrievalService            │
+│         └─ EmbeddingService.embed_text()│
+│         └─ VectorRepository.search()   │
+│         └─ reranking.py                 │
+│                                         │
+│  Node 4: Regulatory Reasoning Agent     │
+│    └─ receives chunks from state        │
+│    └─ calls LLM with reasoning prompt   │
+│                                         │
+│  Node 5: Compliance Auditor             │
+│    └─ receives reasoning output         │
+│    └─ calls LLM with auditor prompt     │
+│                                         │
+│  Node 6: Citation Verifier              │
+│    └─ cross-checks all claims vs chunks │
+│                                         │
+│  Node 7: Critic                         │
+│    └─ reviews everything                │
+│    └─ if quality_score < threshold      │
+│         └─ loops back to Node 4         │
+│                                         │
+│  END → structured ComplianceReport      │
+└─────────────────────────────────────────┘
+        │
+        ▼
+AuditService.persist(trace)  → PostgreSQL
+        │
+        ▼
+FastAPI returns structured JSON response
+
+
+POST /analysis/analyze-business
+  → ComplianceService.analyze()
+    → workflow.ainvoke(state)        ← LangGraph
+      → orchestrator_node → run_orchestrator()   [qwen2.5:14b]
+      → jurisdiction_node → run_jurisdiction_mapping()  [qwen2.5:7b]
+      → research_node → RetrievalService.retrieve()  [Qdrant + reranker]
+      → reasoning_node → run_reasoning()   [qwen2.5:14b]
+      → auditor_node → run_audit()   [qwen2.5:14b]
+      → citation_node → run_citation_verification()  [qwen2.5:14b]
+      → critic_node → run_critic()   [qwen2.5:14b]
+    → AuditService.create_record()   [PostgreSQL]
+
+POST /compliance-gap-analysis (multipart: file + query)
+  → GapAnalysisService(db).analyze(document_text, session_id)
+    → Parse/chunk the uploaded document
+    → RetrievalService.retrieve()  [find relevant regulations]
+    → LangGraph gap-analysis workflow (or a simpler 3-4 agent chain)
+    → AuditService.create_record()

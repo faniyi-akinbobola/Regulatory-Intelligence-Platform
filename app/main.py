@@ -6,14 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.db.postgres import init_db
+from app.db.qdrant import init_qdrant_collection
 
-
-# @asynccontextmanager
-# async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-#     print("Starting Regulatory Intelligence Platform...")
-#     await init_db()
-#     yield
-#     print("Shutting down...")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
@@ -24,8 +18,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     except Exception as e:
         print(f"WARNING: Database not available — {e}")
         print("Server starting without database. Some routes will not work.")
+    try:
+        await init_qdrant_collection()
+        print("Qdrant collection ready.")
+    except Exception as e:
+        print(f"WARNING: Qdrant not available — {e}")
     yield
     print("Shutting down...")
+
 
 app = FastAPI(
     title="Regulatory Intelligence Platform",

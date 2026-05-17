@@ -24,10 +24,18 @@ class Settings(BaseSettings):
     embedding_model_name: str = "BAAI/bge-base-en-v1.5"
     embedding_dimension: int = 768
 
-    # LLM
+    # LLM — Ollama models
     llm_base_url: str = "http://localhost:11434"
     llm_model_name: str = "qwen2.5:14b"
     llm_small_model_name: str = "qwen2.5:7b"
+
+    # LLM provider: "openai" or "ollama"
+    llm_provider: str = "openai"
+
+    # OpenAI
+    openai_api_key: str = ""
+    openai_model: str = "gpt-4o-mini"
+    openai_url: str = "https://api.openai.com/v1/chat/completions"
 
     # Auth
     secret_key: str = "change-me-in-production"

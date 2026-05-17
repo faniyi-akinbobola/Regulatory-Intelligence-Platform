@@ -1,0 +1,87 @@
+import time
+import uuid
+import logging
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.graph.workflow import workflow
+from app.services.audit_service import AuditService
+from app.utils.citations import build_citations_from_chunks
+
+logger = logging.getLogger(__name__)
+
+
+class ComplianceService:
+
+    def __init__(self, db: AsyncSession):
+        self._db = db
+        self._audit_service = AuditService(db)
+
+    async def analyze(
+        self,
+        query: str,
+        session_id: uuid.UUID,
+        organization_context: str | None = None,
+    ) -> dict:
+        initial_state = {
+            "query": query,
+            "session_id": str(session_id),
+            "organization_context": organization_context,
+            "iteration_count": 0,
+            "max_iterations": 2,
+            "agent_trace": [],
+        }
+
+        start_ms = int(time.time() * 1000)
+        logger.info("[COMPLIANCE] Starting workflow for session %s", session_id)
+
+        final_state = await workflow.ainvoke(initial_state)
+        duration_ms = int(time.time() * 1000) - start_ms
+
+        logger.info(
+            "[COMPLIANCE] Workflow complete in %dms, iterations=%d",
+            duration_ms,
+            final_state.get("iteration_count", 0),
+        )
+
+        reasoning_result = final_state.get("reasoning_result") or {}
+        audit_result = final_state.get("audit_result") or {}
+        citation_result = final_state.get("citation_result") or {}
+        chunks = final_state.get("retrieved_chunks") or []
+        citations = build_citations_from_chunks(chunks)
+
+        final_report = {
+            "query": query,
+            "executive_summary": reasoning_result.get("reasoning_summary", ""),
+            "obligations": reasoning_result.get("obligations", []),
+            "prohibitions": reasoning_result.get("prohibitions", []),
+            "permissions": reasoning_result.get("permissions", []),
+            "conflicts": reasoning_result.get("conflicts", []),
+            "compliance_gaps": audit_result.get("compliance_gaps", []),
+            "compliance_checklist": audit_result.get("compliance_checklist", []),
+            "licensing_requirements": audit_result.get("licensing_requirements", []),
+            "recommendations": audit_result.get("recommendations", []),
+            "risk_score": audit_result.get("risk_score"),
+            "risk_level": audit_result.get("risk_level"),
+            "citations": citations,
+        }
+
+        # Inject final_report into state so AuditService can persist it
+        final_state["final_report"] = final_report
+
+        record = await self._audit_service.create_record(
+            workflow_state=final_state,
+            session_id=session_id,
+            duration_ms=duration_ms,
+        )
+
+        return {
+            "audit_id": str(record.id),
+            "session_id": str(session_id),
+            "query": query,
+            "final_report": final_report,
+            "overall_risk_level": audit_result.get("risk_level"),
+            "hallucination_risk": citation_result.get("hallucination_risk"),
+            "grounding_score": citation_result.get("overall_grounding_score"),
+            "agent_trace": final_state.get("agent_trace", []),
+            "iteration_count": final_state.get("iteration_count", 0),
+            "duration_ms": duration_ms,
+        }

@@ -32,6 +32,7 @@ async def upload_regulation(
     file: UploadFile = File(...),
     regulator: str = Form(..., description="e.g. CBN, SEC, NDIC, FIRS"),
     document_type: str = Form(..., description="e.g. Guideline, Circular, Act, Regulation"),
+    issued_date: str | None = Form(None, description="ISO date of document issue, e.g. 2024-03-15"),
     notes: str | None = Form(None),
     db: AsyncSession = Depends(get_db_session),
 ) -> dict:
@@ -67,6 +68,8 @@ async def upload_regulation(
             tmp_path,
             regulator=regulator,
             document_type=document_type,
+            document_name=file.filename,
+            issued_date=issued_date,
         )
 
         await doc_repo.save({

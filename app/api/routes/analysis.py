@@ -1,50 +1,45 @@
 import uuid
 from typing import AsyncGenerator
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies import OptionalUser
-from app.graph.workflow import workflow
+from app.db.postgres import get_db_session
 from app.models.requests import BusinessAnalysisRequest, ComplianceGapRequest
-from app.models.responses import AnalysisInitiatedResponse, ComplianceReportResponse
+from app.models.responses import AnalysisInitiatedResponse
+from app.services.compliance_service import ComplianceService
 
 router = APIRouter(prefix="/analyze", tags=["analysis"])
 
-# In-memory store for reports — will be replaced by DB later
+# In-memory store for streaming progress — replaced by Redis later
 _reports: dict[str, dict] = {}
 
 
 async def _run_workflow(
     report_id: str,
     query: str,
+    db: AsyncSession,
     organization_context: str | None = None,
     target_regulators: list[str] | None = None,
 ) -> None:
     """
-    Background task that invokes the compiled LangGraph workflow.
-    Stores the result in _reports keyed by report_id.
+    Background task that invokes ComplianceService which runs
+    the full LangGraph multi-agent workflow and persists results to DB.
     """
     try:
         _reports[report_id] = {"status": "running", "report": None, "trace": []}
 
-        # Build the initial state the workflow expects
-        initial_state = {
-            "query": query,
-            "session_id": report_id,
-            "organization_context": organization_context,
-            "target_regulators": target_regulators or [],
-            "iteration_count": 0,
-            "max_iterations": 3,
-            "agent_trace": [],
-        }
-
-        # Invoke the LangGraph workflow
-        result = await workflow.ainvoke(initial_state)
+        result = await ComplianceService(db).analyze(
+            query=query,
+            session_id=uuid.UUID(report_id),
+            organization_context=organization_context,
+        )
 
         _reports[report_id] = {
             "status": "completed",
-            "report": result.get("final_report", {}),
+            "report": result,
             "trace": result.get("agent_trace", []),
         }
 
@@ -67,6 +62,7 @@ async def analyze_business(
     request: BusinessAnalysisRequest,
     background_tasks: BackgroundTasks,
     current_user: OptionalUser,
+    db: AsyncSession = Depends(get_db_session),
 ) -> AnalysisInitiatedResponse:
     report_id = str(uuid.uuid4())
 
@@ -74,6 +70,7 @@ async def analyze_business(
         _run_workflow,
         report_id=report_id,
         query=request.business_description,
+        db=db,
         organization_context=str(request.organization_context) if request.organization_context else None,
         target_regulators=request.target_regulators,
     )
@@ -95,6 +92,7 @@ async def compliance_gap_analysis(
     request: ComplianceGapRequest,
     background_tasks: BackgroundTasks,
     current_user: OptionalUser,
+    db: AsyncSession = Depends(get_db_session),
 ) -> AnalysisInitiatedResponse:
     """
     Compares the business description against ingested regulations
@@ -102,7 +100,6 @@ async def compliance_gap_analysis(
     """
     report_id = str(uuid.uuid4())
 
-    # Build a gap-focused query so the workflow knows what to look for
     gap_query = (
         f"Perform a compliance gap analysis for the following business: "
         f"{request.business_description}. "
@@ -116,6 +113,7 @@ async def compliance_gap_analysis(
         _run_workflow,
         report_id=report_id,
         query=gap_query,
+        db=db,
         target_regulators=request.target_regulators,
     )
 
@@ -158,19 +156,17 @@ async def stream_report(
         import json
 
         seen_steps: set[int] = set()
-        max_polls = 120  # 2 minute timeout
+        max_polls = 120
 
         for _ in range(max_polls):
             report = _reports.get(report_id)
 
             if report:
-                # Stream any new agent trace steps
                 for i, step in enumerate(report.get("trace", [])):
                     if i not in seen_steps:
                         seen_steps.add(i)
                         yield f"data: {json.dumps(step)}\n\n"
 
-                # If workflow is done, send final event and close
                 if report["status"] in ("completed", "failed"):
                     yield f"data: {json.dumps({'event': 'done', 'status': report['status']})}\n\n"
                     break
