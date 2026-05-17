@@ -1,14 +1,9 @@
 from app.prompts.critic import CRITIC_SYSTEM_PROMPT
-from app.core.config import settings
-import httpx
+from app.utils.llm_client import chat
 import json
 import logging
 
 logger = logging.getLogger(__name__)
-
-model = settings.llm_model_name
-ollama_url = settings.llm_base_url
-
 
 async def run_critic(
     query: str,
@@ -30,16 +25,8 @@ async def run_critic(
         {"role": "user", "content": user_message},
     ]
 
-    async with httpx.AsyncClient(timeout=120.0) as client:
-        response = await client.post(
-            f"{ollama_url}/api/chat",
-            json={"model": model, "messages": messages, "stream": False},
-        )
-
-    if response.status_code != 200:
-        raise ValueError(f"LLM API error: {response.status_code} {response.text}")
-
-    content = response.json().get("message", {}).get("content", "")
+    logger.info("[CRITIC] Calling LLM...")
+    content = await chat(messages, timeout=120.0)
 
     try:
         # Strip markdown code fences if the model wraps JSON in them

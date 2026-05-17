@@ -24,10 +24,19 @@ class Settings(BaseSettings):
     embedding_model_name: str = "BAAI/bge-base-en-v1.5"
     embedding_dimension: int = 768
 
-    # LLM
+    # Ollama LLM models
     llm_base_url: str = "http://localhost:11434"  # Ollama default
     llm_model_name: str = "qwen2.5:14b"        # orchestrator, reasoning, auditor, critic
     llm_small_model_name: str = "qwen2.5:7b" # jurisdiction mapper, citation verifier
+
+    # LLM provider: "openai" or "ollama"
+    llm_provider: str = "openai"
+
+    # OpenAI
+    openai_api_key: str = ""
+    openai_model: str = "gpt-4o-mini"
+    openai_url: str = "https://api.openai.com/v1/chat/completions"
+
 
     @property
     def postgres_url(self) -> str:

@@ -1,47 +1,43 @@
-from app.prompts.citation_verifier import CITATION_VERIFIER_PROMPT
-from app.core.config import settings
-import httpx
+from app.prompts.auditor import AUDITOR_SYSTEM_PROMPT
+from app.utils.llm_client import chat
 import json
 import logging
 
 logger = logging.getLogger(__name__)
 
-model = settings.llm_model_name
-ollama_url = settings.llm_base_url
 
-async def run_audit(query: str, reasoning_result: dict) -> dict:
+async def run_audit(query: str, reasoning_result: dict, retrieved_chunks: list[dict]) -> dict:
+    chunks_text = "\n\n".join(
+        f"[{c.get('regulator', '')} | {c.get('source', '')} | {c.get('section', '')}]\n{c.get('text', '')}"
+        for c in retrieved_chunks[:10]
+    )
     user_message = (
         f"Original query: {query}\n\n"
-        f"Reasoning output:\n{json.dumps(reasoning_result, indent=2)}\n\n"
-        "Audit the reasoning output for correctness, completeness, and potential issues. "
-        "Return your audit as a JSON object matching the output format in your instructions."
+        f"Legal reasoning output:\n{json.dumps(reasoning_result, indent=2)}\n\n"
+        f"Supporting regulation chunks:\n{chunks_text}\n\n"
+        "Perform a full compliance audit of the above. "
+        "Return your assessment as a JSON object matching the output format in your instructions."
     )
 
     messages = [
-        {"role": "system", "content": CITATION_VERIFIER_PROMPT},
+        {"role": "system", "content": AUDITOR_SYSTEM_PROMPT},
         {"role": "user", "content": user_message},
     ]
 
-    async with httpx.AsyncClient(timeout=120.0) as client:
-        response = await client.post(
-            f"{ollama_url}/api/chat",
-            json={"model": model, "messages": messages, "stream": False},
-        )
-
-    if response.status_code != 200:
-        raise ValueError(f"LLM API error: {response.status_code} {response.text}")
-
-    content = response.json().get("message", {}).get("content", "")
+    logger.info("[AUDITOR] Calling LLM...")
+    content = await chat(messages, timeout=120.0)
 
     try:
-        # Strip markdown code fences if the model wraps JSON in them
         clean = content.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
         return json.loads(clean)
     except json.JSONDecodeError:
         logger.warning("[AUDITOR] LLM response was not valid JSON — returning raw content")
         return {
-            "correctness": "UNKNOWN",
-            "completeness": "UNKNOWN",
-            "potential_issues": [],
+            "risk_score": 0,
+            "risk_level": "UNKNOWN",
+            "compliance_gaps": [],
+            "compliance_checklist": [],
+            "licensing_requirements": [],
+            "recommendations": [],
             "raw_feedback": content,
         }

@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from app.db.postgres import init_db
 from app.db.qdrant import init_qdrant_collection
-from app.api.routes import regulations
+from app.api.routes import regulations, audit, analysis
 
 logging.basicConfig(
     level=logging.INFO,
@@ -32,6 +32,8 @@ app = FastAPI(
 )
 
 app.include_router(regulations.router)
+app.include_router(audit.router)
+app.include_router(analysis.router)
 
 
 @app.get("/health")

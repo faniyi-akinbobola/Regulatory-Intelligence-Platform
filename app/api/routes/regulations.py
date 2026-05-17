@@ -1,13 +1,3 @@
-# from fastapi import FastAPI
-# from app.services.ingestion_service import IngestionService
-
-# app = FastAPI()
-
-# @app.post("/regulations/upload")
-# async def upload_regulations(path: str):
-#     ingestion_service = IngestionService()
-#     result = await ingestion_service.ingest(path)
-#     return result
 
 import hashlib
 import tempfile
@@ -37,6 +27,7 @@ async def upload_regulation(
     file: UploadFile = File(...),
     regulator: str = Form(..., description="e.g. CBN, SEC, NDIC, FIRS"),
     document_type: str = Form(..., description="e.g. Guideline, Circular, Act, Regulation"),
+    issued_date: str | None = Form(None, description="ISO date of document issue, e.g. 2024-03-15"),
     notes: str | None = Form(None),
     db: AsyncSession = Depends(get_db_session),
 ):
@@ -68,7 +59,13 @@ async def upload_regulation(
         vector_repo = VectorRepository(qdrant_client)
         ingestion_service = IngestionService(_embedding_service, vector_repo)
 
-        result = await ingestion_service.ingest(tmp_path, regulator=regulator, document_type=document_type)
+        result = await ingestion_service.ingest(
+            tmp_path,
+            regulator=regulator,
+            document_type=document_type,
+            document_name=file.filename,
+            issued_date=issued_date,
+        )
 
         await doc_repo.save({
             "file_name": file.filename,
