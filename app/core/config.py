@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     openai_url: str = "https://api.openai.com/v1/chat/completions"
 
     # Auth
-    secret_key: str = "change-me-in-production"
+    secret_key: str = ""
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60 * 24
 
