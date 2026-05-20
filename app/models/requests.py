@@ -43,8 +43,6 @@ class ComplianceGapRequest(BaseModel):
     target_regulators: list[str] | None = None
 
 
-# Audit Trace
-
 class AuditTraceQueryRequest(BaseModel):
     report_id: UUID
     include_agent_details: bool = True

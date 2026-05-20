@@ -1,11 +1,9 @@
 import uuid
-from typing import AsyncGenerator
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
-from fastapi.responses import StreamingResponse
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.dependencies import OptionalUser
 from app.db.postgres import get_db_session
 from app.models.requests import BusinessAnalysisRequest, ComplianceGapRequest
 from app.models.responses import AnalysisInitiatedResponse
@@ -40,26 +38,16 @@ async def _run_workflow(
             organization_context=organization_context,
         )
 
-        _reports[report_id] = {
-            "status": "completed",
-            "report": result,
-            "trace": result.get("agent_trace", []),
-        }
-
-    except Exception as e:
-        _reports[report_id] = {
-            "status": "failed",
-            "error": str(e),
-            "report": None,
-            "trace": [],
-        }
+class ComplianceGapRequest(BaseModel):
+    business_description: str
+    session_id: str | None = None
+    target_regulators: list[str] | None = None
 
 
 @router.post(
-    "/business",
-    response_model=AnalysisInitiatedResponse,
-    status_code=status.HTTP_202_ACCEPTED,
-    summary="Initiate multi-agent regulatory analysis for a business model",
+    "/analyze-business",
+    status_code=status.HTTP_200_OK,
+    summary="Submit a compliance question and receive a structured analysis report",
 )
 async def analyze_business(
     request: BusinessAnalysisRequest,
@@ -176,8 +164,34 @@ async def stream_report(
 
             await asyncio.sleep(1)
 
-    return StreamingResponse(
-        event_generator(),
-        media_type="text/event-stream",
-        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
-    )
+    return result
+
+
+@router.post(
+    "/compliance-gap",
+    status_code=status.HTTP_200_OK,
+    summary="Identify compliance gaps between a business and applicable regulations",
+)
+async def compliance_gap_analysis(
+    request: ComplianceGapRequest,
+    db: AsyncSession = Depends(get_db_session),
+):
+    """
+    Compares the business description against ingested regulations
+    and identifies missing controls, gaps, and unmet obligations.
+    """
+    session_id = uuid.UUID(request.session_id) if request.session_id else uuid.uuid4()
+
+    try:
+        result = await ComplianceService(db).analyze_gap(
+            business_description=request.business_description,
+            session_id=session_id,
+            target_regulators=request.target_regulators,
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(exc),
+        )
+
+    return result
