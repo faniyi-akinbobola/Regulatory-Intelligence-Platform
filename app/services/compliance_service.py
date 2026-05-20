@@ -1,7 +1,9 @@
 import time
 import uuid
 import logging
+
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.graph.workflow import workflow
 from app.services.audit_service import AuditService
 from app.utils.citations import build_citations_from_chunks
@@ -64,7 +66,6 @@ class ComplianceService:
             "citations": citations,
         }
 
-        # Inject final_report into state so AuditService can persist it
         final_state["final_report"] = final_report
 
         record = await self._audit_service.create_record(
@@ -85,3 +86,27 @@ class ComplianceService:
             "iteration_count": final_state.get("iteration_count", 0),
             "duration_ms": duration_ms,
         }
+
+    async def analyze_gap(
+        self,
+        business_description: str,
+        session_id: uuid.UUID,
+        target_regulators: list[str] | None = None,
+    ) -> dict:
+        """
+        Builds a gap-focused query and runs the full compliance workflow.
+        All gap analysis logic lives here, not in the route.
+        """
+        gap_query = (
+            f"Perform a compliance gap analysis for the following business: "
+            f"{business_description}. "
+            f"Identify missing controls, unmet obligations, and regulatory gaps."
+        )
+
+        if target_regulators:
+            gap_query += f" Focus specifically on: {', '.join(target_regulators)}."
+
+        return await self.analyze(
+            query=gap_query,
+            session_id=session_id,
+        )
