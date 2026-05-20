@@ -1,19 +1,27 @@
+import uuid
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.db.postgres import get_db_session
 from app.services.audit_service import AuditService
 
 router = APIRouter(prefix="/audit", tags=["audit"])
 
 
-@router.get("/trace/{audit_id}", status_code=status.HTTP_200_OK)
+@router.get(
+    "/trace/{audit_id}",
+    status_code=status.HTTP_200_OK,
+    summary="Retrieve full agent workflow trace for a compliance report",
+)
 async def get_audit_trace(
     audit_id: str,
     db: AsyncSession = Depends(get_db_session),
-):
+) -> dict:
     """
-    Retrieve the full audit trace for a completed workflow run.
-    Returns agent decisions, citations, reasoning, risk assessment, and grounding score.
+    Returns the complete step-by-step agent execution trace for a report.
+    Supports explainability and auditability — you can see exactly what
+    each agent did, what citations it used, and what reasoning it applied.
     """
     audit_service = AuditService(db)
     record = await audit_service.get_record(audit_id)
@@ -47,13 +55,20 @@ async def get_audit_trace(
     }
 
 
-@router.get("/session/{session_id}", status_code=status.HTTP_200_OK)
+@router.get(
+    "/session/{session_id}",
+    status_code=status.HTTP_200_OK,
+    summary="List all audit traces for a session",
+)
 async def list_session_traces(
     session_id: str,
     limit: int = 20,
     db: AsyncSession = Depends(get_db_session),
-):
-    """List all audit traces for a session, newest first."""
+) -> list[dict]:
+    """
+    Lists all audit traces for a session, newest first.
+    Useful for reviewing the history of analyses run in a session.
+    """
     audit_service = AuditService(db)
     records = await audit_service.list_session_records(session_id, limit=limit)
 

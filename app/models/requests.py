@@ -4,6 +4,18 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 
+class AnalysisRequest(BaseModel):
+    query: str
+    session_id: str | None = None
+    organization_context: str | None = None
+
+
+class ComplianceGapRequest(BaseModel):
+    business_description: str
+    session_id: str | None = None
+    target_regulators: list[str] | None = None
+
+
 class BusinessAnalysisRequest(BaseModel):
     business_description: str = Field(
         min_length=20,
@@ -22,11 +34,6 @@ class BusinessAnalysisRequest(BaseModel):
         default=None,
         description="Additional org context: existing licenses, jurisdiction, etc.",
     )
-
-
-class ComplianceGapRequest(BaseModel):
-    business_description: str = Field(min_length=20, max_length=5000)
-    target_regulators: list[str] | None = None
 
 
 class AuditTraceQueryRequest(BaseModel):
