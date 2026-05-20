@@ -1,20 +1,21 @@
-
 import hashlib
-import tempfile
 import os
-from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException, status
+import tempfile
+
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.config import settings
 from app.db.postgres import get_db_session
 from app.db.qdrant import get_qdrant_client
 from app.repositories.document_repository import DocumentRepository
 from app.repositories.vector_repository import VectorRepository
 from app.services.embedding_service import EmbeddingService
 from app.services.ingestion_service import IngestionService
-from app.core.config import settings
 
 router = APIRouter(prefix="/regulations", tags=["regulations"])
 
-# Instantiated once at import time — model loads only on first request
+# Embedding model loaded once at startup
 _embedding_service = EmbeddingService(settings.embedding_model_name)
 
 
@@ -22,7 +23,11 @@ def _hash_upload(file_bytes: bytes) -> str:
     return hashlib.sha256(file_bytes).hexdigest()
 
 
-@router.post("/upload", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/upload",
+    status_code=status.HTTP_201_CREATED,
+    summary="Upload a regulatory PDF for ingestion into the vector store",
+)
 async def upload_regulation(
     file: UploadFile = File(...),
     regulator: str = Form(..., description="e.g. CBN, SEC, NDIC, FIRS"),
@@ -30,7 +35,7 @@ async def upload_regulation(
     issued_date: str | None = Form(None, description="ISO date of document issue, e.g. 2024-03-15"),
     notes: str | None = Form(None),
     db: AsyncSession = Depends(get_db_session),
-):
+) -> dict:
     if file.content_type != "application/pdf":
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -42,14 +47,14 @@ async def upload_regulation(
 
     doc_repo = DocumentRepository(db)
 
-    # Dedup check — reject if same content already ingested
+    # Reject duplicate documents
     if await doc_repo.exists_by_hash(file_hash):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"Document with identical content already ingested. Skipping.",
+            detail="Document with identical content already ingested. Skipping.",
         )
 
-    # Write to temp file for parsers (they need a file path)
+    # Write to temp file — parsers need a file path not bytes
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
         tmp.write(file_bytes)
         tmp_path = tmp.name
@@ -83,7 +88,7 @@ async def upload_regulation(
             detail=str(e),
         )
     finally:
-        os.unlink(tmp_path)  # always clean up temp file
+        os.unlink(tmp_path)
 
     return {
         "message": "Document ingested successfully.",
@@ -94,9 +99,14 @@ async def upload_regulation(
     }
 
 
-@router.get("/", status_code=status.HTTP_200_OK)
-async def list_regulations(db: AsyncSession = Depends(get_db_session)):
-    """Lists all ingested regulatory documents."""
+@router.get(
+    "/",
+    status_code=status.HTTP_200_OK,
+    summary="List all ingested regulatory documents",
+)
+async def list_regulations(
+    db: AsyncSession = Depends(get_db_session),
+) -> list[dict]:
     doc_repo = DocumentRepository(db)
     records = await doc_repo.get_all()
     return [
@@ -112,16 +122,24 @@ async def list_regulations(db: AsyncSession = Depends(get_db_session)):
         for r in records
     ]
 
-@router.delete("/{doc_id}", status_code=status.HTTP_200_OK)
+
+@router.delete(
+    "/{doc_id}",
+    status_code=status.HTTP_200_OK,
+    summary="Delete a regulatory document and its vectors",
+)
 async def delete_regulation(
     doc_id: int,
     db: AsyncSession = Depends(get_db_session),
-):
+) -> dict:
     doc_repo = DocumentRepository(db)
     record = await doc_repo.get_by_id(doc_id)
 
     if not record:
-        raise HTTPException(status_code=404, detail="Document not found.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found.",
+        )
 
     qdrant_client = await get_qdrant_client()
     vector_repo = VectorRepository(qdrant_client)

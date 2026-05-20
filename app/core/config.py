@@ -5,9 +5,9 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     # PostgreSQL
-    postgres_user: str
-    postgres_password: str
-    postgres_db: str
+    postgres_user: str = "postgres"
+    postgres_password: str = "postgres"
+    postgres_db: str = "regulatory_platform"
     postgres_host: str = "localhost"
     postgres_port: int = 5432
 
@@ -24,10 +24,10 @@ class Settings(BaseSettings):
     embedding_model_name: str = "BAAI/bge-base-en-v1.5"
     embedding_dimension: int = 768
 
-    # Ollama LLM models
-    llm_base_url: str = "http://localhost:11434"  # Ollama default
-    llm_model_name: str = "qwen2.5:14b"        # orchestrator, reasoning, auditor, critic
-    llm_small_model_name: str = "qwen2.5:7b" # jurisdiction mapper, citation verifier
+    # LLM — Ollama models
+    llm_base_url: str = "http://localhost:11434"
+    llm_model_name: str = "qwen2.5:14b"
+    llm_small_model_name: str = "qwen2.5:7b"
 
     # LLM provider: "openai" or "ollama"
     llm_provider: str = "openai"
@@ -37,6 +37,14 @@ class Settings(BaseSettings):
     openai_model: str = "gpt-4o-mini"
     openai_url: str = "https://api.openai.com/v1/chat/completions"
 
+    # Auth
+    secret_key: str = ""
+    jwt_algorithm: str = "HS256"
+    access_token_expire_minutes: int = 60 * 24
+
+    # App
+    debug: bool = False
+    allowed_origins: list[str] = ["http://localhost:3000", "http://localhost:8000"]
 
     @property
     def postgres_url(self) -> str:

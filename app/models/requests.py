@@ -4,6 +4,9 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 
+
+# Business Analysis
+
 class BusinessAnalysisRequest(BaseModel):
     business_description: str = Field(
         min_length=20,
@@ -23,6 +26,17 @@ class BusinessAnalysisRequest(BaseModel):
         description="Additional org context: existing licenses, jurisdiction, etc.",
     )
 
+
+# Regulation Upload
+
+class RegulationUploadRequest(BaseModel):
+    title: str = Field(min_length=1, max_length=500)
+    regulator: str = Field(description="e.g. CBN, SEC, NDIC, FIRS")
+    document_type: str | None = Field(default=None, max_length=100)
+    version: str | None = Field(default=None, max_length=50)
+
+
+# Compliance Gap Analysis
 
 class ComplianceGapRequest(BaseModel):
     business_description: str = Field(min_length=20, max_length=5000)
