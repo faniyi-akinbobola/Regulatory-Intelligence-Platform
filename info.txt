@@ -95,3 +95,41 @@ POST /compliance-gap-analysis (multipart: file + query)
     → RetrievalService.retrieve()  [find relevant regulations]
     → LangGraph gap-analysis workflow (or a simpler 3-4 agent chain)
     → AuditService.create_record()
+
+    Task	Status
+Full PDF ingestion (47 docs, correct regulator metadata)	Remaining
+GET /regulations list endpoint	Remaining
+Prompt fixes (reasoning, auditor, critic)	Remaining
+Chainlit UI	Remaining
+Basic tests (at least smoke tests)	Remaining
+Core workflow	Done
+Document upload	Done
+Audit trail	Done
+
+# 1. Should cite ISA 2025 with regulator = "SEC Nigeria", not CBN
+curl -s -X POST http://localhost:8000/analyze/analyze-business \
+  -H "Content-Type: application/json" \
+  -d '{"business_description": "I want to launch an investment platform that allows retail investors to buy shares and bonds.", "business_sector": "fintech"}' | python3 -m json.tool | grep -A2 '"regulator"'
+
+# 2. Should cite NDIC Act with regulator = "NDIC"
+curl -s -X POST http://localhost:8000/analyze/analyze-business \
+  -H "Content-Type: application/json" \
+  -d '{"business_description": "We are a microfinance bank and want to understand deposit insurance obligations.", "business_sector": "banking"}' | python3 -m json.tool | grep -A2 '"regulator"'
+
+# 3. Should cite FIRS / tax laws for payment processing
+curl -s -X POST http://localhost:8000/analyze/analyze-business \
+  -H "Content-Type: application/json" \
+  -d '{"business_description": "We process payments for merchants and want to understand our tax withholding and VAT obligations.", "business_sector": "payments"}' | python3 -m json.tool | grep -A2 '"regulator"'
+
+
+  {"business_description": "We want to launch a mobile app that allows Nigerians to buy, sell and hold Bitcoin and USDT. Users can fund their wallets via bank transfer and withdraw to their local bank accounts.", "business_sector": "Digital Assets / Crypto"}
+  {"business_description": "We are a crowdfunding platform where startups raise equity capital from retail investors across Nigeria. Investors receive shares in exchange for their contributions.", "business_sector": "Capital Markets"}
+  {"business_description": "We are a crowdfunding platform where startups raise equity capital from retail investors across Nigeria. Investors receive shares in exchange for their contributions.", "business_sector": "Capital Markets"}
+  {"business_description": "We are building a Buy Now Pay Later product for e-commerce checkouts. We partner with merchants and extend short-term credit to shoppers, collecting repayment in 4 instalments over 8 weeks.", "business_sector": "Fintech"}
+
+  {"business_description": "We operate a POS agent network with 500 agents across 10 states. We have CBN agent banking approval but have not conducted agent training, have no transaction monitoring system, and do not submit monthly PEP reports.", "target_regulators": ["CBN", "EFCC"]}
+  {"business_description": "We are a digital lender offering salary advance loans. We deduct repayments directly from payroll. We have no consumer protection policy, no disclosed interest rate methodology, and no whistle-blower channel.", "target_regulators": ["CBN", "FCCPC"]}
+  {"business_description": "We are a licensed mobile money operator with an existing KYC policy, AML manual, and CBN approval. We now want to expand into savings products paying 8% annual interest to customers.", "target_regulators": ["CBN", "NDIC"]}
+  {"business_description": "We are a fintech processing card payments for merchants. We have PCI-DSS certification and FIRS tax registration but have never filed a CTR or STR with any regulator.", "target_regulators": ["CBN", "EFCC"]}
+
+  ac708cb5-3b3d-4de9-8440-e9a034d15f15

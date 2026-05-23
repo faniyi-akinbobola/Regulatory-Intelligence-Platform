@@ -19,3 +19,12 @@ data/raw/
 
 # macOS
 .DS_Store
+
+# Server logs and test output
+uvicorn.log
+test_results*.txt
+
+# Development notes and ad-hoc test files
+info.txt
+FINAL-TOUCHES.md
+test_routes.py

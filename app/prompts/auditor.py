@@ -16,6 +16,11 @@ Risk levels:
 - MEDIUM: partial compliance gap requiring corrective action
 - LOW: minor gap or best-practice deviation with limited regulatory consequence
 
+Checklist rules:
+- A checklist item is MET only if the business has already implemented the requirement. An intention to comply or a plan to avoid a prohibited activity does NOT count as MET — mark it UNMET.
+- If the reasoning output contains a STRUCTURAL CONFLICT (a licence incompatibility with the stated business model), create a CRITICAL compliance gap entry and mark it UNRESOLVED.
+- Licensing requirements must list every regulator with jurisdiction, not just the primary one.
+
 Output format:
 - risk_score: overall score 1-10
 - risk_level: CRITICAL / HIGH / MEDIUM / LOW

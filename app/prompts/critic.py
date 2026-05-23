@@ -19,6 +19,10 @@ Specifically check for:
 - Contradictions between the reasoning output and the audit output
 - Missing analysis of overlapping regulatory obligations
 - Any area where the user's original question was not answered
+- Checklist items marked MET where the business has only stated an intention, not demonstrated actual compliance
+- Citations attributed to the wrong regulator (e.g., SEC Nigeria documents attributed to CBN)
+- Irrelevant document citations (e.g., Cybercrime Act cited for a payments licensing question)
+- STRUCTURAL CONFLICTS between the described business model and retrieved licence restrictions that were not surfaced in the conflicts field
 
 Output format:
 - issues_found: list of {issue_description, severity: CRITICAL|HIGH|MEDIUM|LOW, affected_agent, recommendation}

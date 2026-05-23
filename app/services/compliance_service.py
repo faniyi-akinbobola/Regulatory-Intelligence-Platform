@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.graph.workflow import workflow
 from app.services.audit_service import AuditService
 from app.utils.citations import build_citations_from_chunks
+from app.utils import cost_tracker
 
 logger = logging.getLogger(__name__)
 
@@ -35,13 +36,17 @@ class ComplianceService:
         start_ms = int(time.time() * 1000)
         logger.info("[COMPLIANCE] Starting workflow for session %s", session_id)
 
+        cost_tracker.reset()
         final_state = await workflow.ainvoke(initial_state)
+        usage = cost_tracker.get()
         duration_ms = int(time.time() * 1000) - start_ms
 
         logger.info(
-            "[COMPLIANCE] Workflow complete in %dms, iterations=%d",
+            "[COMPLIANCE] Workflow complete in %dms, iterations=%d, tokens=%d, cost=$%.6f",
             duration_ms,
             final_state.get("iteration_count", 0),
+            usage.total_tokens if usage else 0,
+            usage.cost_usd if usage else 0.0,
         )
 
         reasoning_result = final_state.get("reasoning_result") or {}
@@ -50,9 +55,20 @@ class ComplianceService:
         chunks = final_state.get("retrieved_chunks") or []
         citations = build_citations_from_chunks(chunks)
 
+        # Derive applicable regulator list from jurisdiction output
+        jurisdiction_result = final_state.get("jurisdiction_result") or {}
+        applicable_regulators = [
+            r.get("regulator")
+            for r in jurisdiction_result.get("applicable_regulators", [])
+            if r.get("regulator")
+        ]
+        if not applicable_regulators:
+            applicable_regulators = final_state.get("target_regulators") or []
+
         final_report = {
             "query": query,
             "executive_summary": reasoning_result.get("reasoning_summary", ""),
+            "applicable_regulators": applicable_regulators,
             "obligations": reasoning_result.get("obligations", []),
             "prohibitions": reasoning_result.get("prohibitions", []),
             "permissions": reasoning_result.get("permissions", []),
@@ -85,6 +101,14 @@ class ComplianceService:
             "agent_trace": final_state.get("agent_trace", []),
             "iteration_count": final_state.get("iteration_count", 0),
             "duration_ms": duration_ms,
+            "llm_metrics": {
+                "llm_calls": usage.llm_calls if usage else 0,
+                "prompt_tokens": usage.prompt_tokens if usage else 0,
+                "completion_tokens": usage.completion_tokens if usage else 0,
+                "total_tokens": usage.total_tokens if usage else 0,
+                "cost_usd": round(usage.cost_usd, 6) if usage else 0.0,
+                "model": "gpt-4o-mini",
+            },
         }
 
     async def analyze_gap(
