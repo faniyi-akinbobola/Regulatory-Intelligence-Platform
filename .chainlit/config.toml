@@ -1,0 +1,35 @@
+[project]
+# Name shown in browser tab and UI header
+name = "Regulatory Intelligence Console"
+
+# Disable the default chatbot persona messaging
+enable_telemetry = false
+
+[UI]
+name = "Regulatory Intelligence Console"
+description = "AI-powered Nigerian Financial Regulation Platform"
+default_collapse_content = false
+hide_cot = false
+
+# Theme
+[UI.theme]
+default = "dark"
+
+[UI.theme.dark]
+background = "#0f1117"
+paper = "#1a1d27"
+
+[UI.theme.dark.primary]
+main = "#2563eb"
+dark = "#1d4ed8"
+light = "#3b82f6"
+
+[UI.theme.light]
+background = "#f8fafc"
+paper = "#ffffff"
+
+[UI.theme.light.primary]
+main = "#1d4ed8"
+
+[meta]
+generated_by = "1.0.0"

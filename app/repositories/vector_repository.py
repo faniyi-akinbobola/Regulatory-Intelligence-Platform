@@ -7,6 +7,7 @@ from qdrant_client.models import (
     Filter,
     FieldCondition,
     MatchValue,
+    MatchAny,
     SparseVector,
 )
 from app.utils.chunking import DocumentChunk
@@ -120,6 +121,7 @@ class VectorRepository:
         top_k: int = 15,
         filter_document: str | None = None,
         filter_regulator: str | None = None,
+        filter_regulators: list[str] | None = None,
         filter_document_type: str | None = None,
         sparse_query: tuple[list[int], list[float]] | None = None,
     ) -> list[dict]:
@@ -134,7 +136,11 @@ class VectorRepository:
             must_conditions.append(
                 FieldCondition(key="source", match=MatchValue(value=filter_document))
             )
-        if filter_regulator:
+        if filter_regulators and len(filter_regulators) > 1:
+            must_conditions.append(
+                FieldCondition(key="regulator", match=MatchAny(any=filter_regulators))
+            )
+        elif filter_regulator:
             must_conditions.append(
                 FieldCondition(key="regulator", match=MatchValue(value=filter_regulator))
             )

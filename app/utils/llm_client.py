@@ -1,6 +1,7 @@
 import httpx
 import logging
 from app.core.config import settings
+from app.utils import cost_tracker
 
 logger = logging.getLogger(__name__)
 
@@ -8,7 +9,8 @@ logger = logging.getLogger(__name__)
 async def chat(messages: list[dict], timeout: float = 120.0) -> str:
     """
     Unified LLM client. Routes to OpenAI or Ollama based on settings.llm_provider.
-    Returns the raw assistant message text.
+    Returns the raw assistant message text. Token usage is automatically
+    accumulated into the current-context cost tracker.
     """
     if settings.llm_provider == "openai":
         return await _openai_chat(messages, timeout)
@@ -25,7 +27,19 @@ async def _openai_chat(messages: list[dict], timeout: float) -> str:
         )
     if response.status_code != 200:
         raise ValueError(f"OpenAI API error: {response.status_code} {response.text}")
-    return response.json()["choices"][0]["message"]["content"]
+    data = response.json()
+    usage = data.get("usage", {})
+    cost_tracker.record(
+        model=settings.openai_model,
+        prompt_tokens=usage.get("prompt_tokens", 0),
+        completion_tokens=usage.get("completion_tokens", 0),
+    )
+    logger.debug(
+        "[LLM] tokens — prompt=%d completion=%d",
+        usage.get("prompt_tokens", 0),
+        usage.get("completion_tokens", 0),
+    )
+    return data["choices"][0]["message"]["content"]
 
 
 async def _ollama_chat(messages: list[dict], timeout: float) -> str:

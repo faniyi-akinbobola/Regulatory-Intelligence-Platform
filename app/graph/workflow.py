@@ -1,7 +1,6 @@
 from langgraph.graph import StateGraph, END
 from app.graph.nodes import (
-    orchestrator_node,
-    jurisdiction_node,
+    orchestrator_jurisdiction_node,
     research_node,
     reasoning_node,
     auditor_node,
@@ -16,17 +15,15 @@ def build_workflow():
     """Builds and compiles the LangGraph multi-agent workflow."""
     graph = StateGraph(AgentState)
 
-    graph.add_node("orchestrator", orchestrator_node)
-    graph.add_node("jurisdiction", jurisdiction_node)
+    graph.add_node("orchestrator_jurisdiction", orchestrator_jurisdiction_node)
     graph.add_node("research", research_node)
     graph.add_node("reasoning", reasoning_node)
     graph.add_node("auditor", auditor_node)
     graph.add_node("citation_verifier", citation_node)
     graph.add_node("critic", critic_node)
 
-    graph.set_entry_point("orchestrator")
-    graph.add_edge("orchestrator", "jurisdiction")
-    graph.add_edge("jurisdiction", "research")
+    graph.set_entry_point("orchestrator_jurisdiction")
+    graph.add_edge("orchestrator_jurisdiction", "research")
     graph.add_edge("research", "reasoning")
     graph.add_edge("reasoning", "auditor")
     graph.add_edge("auditor", "citation_verifier")

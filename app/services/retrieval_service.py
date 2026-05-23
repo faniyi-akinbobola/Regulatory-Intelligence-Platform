@@ -12,6 +12,22 @@ from app.utils.llm_client import chat
 
 logger = logging.getLogger(__name__)
 
+# Canonical regulator names used by LLM agents → all stored variants in Qdrant
+_REGULATOR_ALIASES: dict[str, list[str]] = {
+    "SEC Nigeria": ["SEC Nigeria", "SEC"],
+    "EFCC / SCUML": ["EFCC / SCUML", "EFCC", "SCUML"],
+    "NITDA / NDPA": ["NITDA / NDPA", "NITDA", "NDPA", "NDPC"],
+    "FCCPC": ["FCCPC", "FCCPA"],
+}
+
+
+def _expand_regulators(regulators: list[str]) -> list[str]:
+    """Expand canonical regulator names to include all stored variants."""
+    expanded: list[str] = []
+    for r in regulators:
+        expanded.extend(_REGULATOR_ALIASES.get(r, [r]))
+    return list(dict.fromkeys(expanded))  # deduplicate, preserve order
+
 
 def _freshness_multiplier(issued_date_str: str | None) -> float:
     """
@@ -49,10 +65,10 @@ class RetrievalService:
         self,
         query: str,
         top_k: int = 15,
-        rerank_top_k: int = 6,
+        rerank_top_k: int = 8,
         filter_regulators: list[str] | None = None,
         filter_document_type: str | None = None,
-        compress: bool = True,
+        compress: bool = False,  # disabled — reranker handles relevance; compression destroys chunk fidelity
     ) -> list[dict]:
         """
         Full retrieval pipeline:
@@ -65,9 +81,13 @@ class RetrievalService:
           7. MMR diversity filtering (deduplicate across sections)
           8. Contextual compression (LLM extracts only relevant sentences)
         """
-        # ── Step 1: Query rewriting ──────────────────────────────────────────
-        queries = await self._expand_queries(query)
-        logger.info("[RETRIEVAL] Query variants: %s", queries)
+        # ── Step 1: Use original query directly (no LLM expansion overhead)
+        queries = [query]
+        logger.info("[RETRIEVAL] Query: %s", query)
+
+        # Expand canonical regulator names to cover all stored variants
+        if filter_regulators:
+            filter_regulators = _expand_regulators(filter_regulators)
 
         # ── Step 2: Multi-query hybrid retrieval ─────────────────────────────
         seen_keys: set[str] = set()
@@ -83,6 +103,7 @@ class RetrievalService:
                 query_embedding=dense_embedding,
                 top_k=top_k,
                 filter_regulator=single_regulator,
+                filter_regulators=filter_regulators if filter_regulators and len(filter_regulators) > 1 else None,
                 filter_document_type=filter_document_type,
                 sparse_query=sparse_query,
             )
@@ -97,8 +118,10 @@ class RetrievalService:
             return []
 
         # ── Step 3: Post-retrieval metadata filter (multi-regulator) ─────────
+        # Already applied at Qdrant level via MatchAny; keep as safety net for edge cases
         if filter_regulators and len(filter_regulators) > 1:
-            all_chunks = [c for c in all_chunks if c.get("regulator") in filter_regulators]
+            filtered = [c for c in all_chunks if c.get("regulator") in filter_regulators]
+            all_chunks = filtered if filtered else all_chunks  # don't discard all if filter mismatch
 
         # ── Step 4: Cross-encoder reranking ──────────────────────────────────
         reranked = rerank_chunks(query=query, chunks=all_chunks, top_k=rerank_top_k * 2)
@@ -131,7 +154,7 @@ class RetrievalService:
             "You are a Nigerian regulatory law expert. "
             "Given this query, produce 2 alternative phrasings using precise legal terminology "
             "a compliance professional would use when searching Nigerian financial regulations. "
-            "Return ONLY a JSON array of 2 strings, no explanation.\n\n"
+            "Return ONLY a JSON array of 1 string, no explanation.\n\n"
             f"Query: {query}"
         )
         try:
@@ -141,7 +164,7 @@ class RetrievalService:
             )
             clean = content.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
             variants = json.loads(clean)
-            return [query] + [v for v in variants[:2] if isinstance(v, str)]
+            return [query] + [v for v in variants[:1] if isinstance(v, str)]
         except Exception as exc:
             logger.debug("[RETRIEVAL] Query expansion failed (%s), using original only", exc)
             return [query]

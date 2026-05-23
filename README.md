@@ -19,19 +19,19 @@ An agentic AI system for Nigerian financial compliance intelligence. Submit a re
 
 ## Stack
 
-| Layer         | Technology                                               |
-| ------------- | -------------------------------------------------------- |
-| API           | FastAPI + uvicorn                                        |
-| Workflow      | LangGraph (7-agent state machine)                        |
-| Vector DB     | Qdrant (dense + BM25 hybrid search)                      |
-| Relational DB | PostgreSQL 16 + SQLAlchemy async                         |
-| Cache         | Redis 7 (provisioned, reserved for sessions)             |
-| LLM           | OpenAI `gpt-4o-mini` (or Ollama local)                   |
-| Embeddings    | `BAAI/bge-base-en-v1.5` (768-dim, sentence-transformers) |
-| Sparse        | `Qdrant/bm25` via fastembed                              |
-| Reranker      | `BAAI/bge-reranker-v2-m3` (cross-encoder)                |
-| PDF Parsing   | PyMuPDF + pdfplumber + Tesseract OCR                     |
-| Runtime       | Python 3.12, uv                                          |
+| Layer         | Technology                                                                    |
+| ------------- | ----------------------------------------------------------------------------- |
+| API           | FastAPI + uvicorn                                                             |
+| Workflow      | LangGraph (6-node state machine, orchestrator + jurisdiction run in parallel) |
+| Vector DB     | Qdrant (dense + BM25 hybrid search)                                           |
+| Relational DB | PostgreSQL 16 + SQLAlchemy async                                              |
+| Cache         | Redis 7 (provisioned, reserved for sessions)                                  |
+| LLM           | OpenAI `gpt-4o-mini` (or Ollama local)                                        |
+| Embeddings    | `BAAI/bge-base-en-v1.5` (768-dim, sentence-transformers)                      |
+| Sparse        | `Qdrant/bm25` via fastembed                                                   |
+| Reranker      | `BAAI/bge-reranker-v2-m3` (cross-encoder)                                     |
+| PDF Parsing   | PyMuPDF + pdfplumber + Tesseract OCR                                          |
+| Runtime       | Python 3.12, uv                                                               |
 
 ---
 
@@ -42,7 +42,7 @@ app/
 ├── main.py                        # FastAPI app entry point, lifespan, router registration
 ├── api/routes/
 │   ├── regulations.py             # POST /regulations/upload
-│   ├── analysis.py                # POST /analysis/analyze-business
+│   ├── analysis.py                # POST /analyze/analyze-business, /analyze/compliance-gap
 │   └── audit.py                   # GET  /audit/trace/{id}, /audit/session/{id}
 ├── agents/                        # One file per LangGraph agent
 │   ├── orchestrator.py
@@ -136,11 +136,13 @@ EMBEDDING_DIMENSION=768
 docker compose up -d
 ```
 
-### 4. Start the server
+### 4. Start the backend server
 
 ```bash
-uvicorn app.main:app --reload
+uvicorn app.main:app --port 8000
 ```
+
+Do **not** use `--reload` — it spawns multiple processes and creates duplicate lifespan events.
 
 On startup you should see:
 
@@ -149,6 +151,16 @@ Starting up Regulatory Intelligence Platform...
 PostgreSQL tables ready
 Qdrant collection ready
 ```
+
+### 5. Start the Regulatory Intelligence Console (UI)
+
+In a second terminal:
+
+```bash
+chainlit run chainlit_app.py --port 8080
+```
+
+Open `http://localhost:8080` to access the console.
 
 ---
 
@@ -167,11 +179,12 @@ curl -X POST http://localhost:8000/regulations/upload \
 ### Analyze a business query
 
 ```bash
-curl -s -X POST http://localhost:8000/analysis/analyze-business \
+curl -s -X POST http://localhost:8000/analyze/analyze-business \
   -H "Content-Type: application/json" \
   -d '{
-    "query": "What complaint resolution timelines must we follow under CBN regulations?",
-    "organization_context": "Digital bank with retail customers"
+    "business_description": "We are launching a mobile lending app...",
+    "business_sector": "Fintech",
+    "organization_context": "Early-stage startup, not yet licensed"
   }' | python3 -m json.tool
 ```
 
@@ -201,14 +214,13 @@ Interactive API docs available at `http://localhost:8000/docs`.
 
 ## How It Works
 
-A query triggers a 7-node LangGraph workflow:
+A query triggers a 6-node LangGraph workflow:
 
 ```
 User Query
     │
-    ▼ Orchestrator       — decomposes query, identifies target regulators
-    │
-    ▼ Jurisdiction Mapper — maps applicable regulators (CBN/SEC/NDIC/FIRS)
+    ▼ Orchestrator + Jurisdiction Mapper  — run in parallel via asyncio.gather;
+    │                                       decomposes query, maps regulators (CBN/SEC/NDIC/FIRS)
     │
     ▼ Research Agent      — 8-step RAG: query expansion → hybrid search →
     │                       reranking → freshness scoring → MMR → compression
@@ -271,15 +283,28 @@ SELECT file_name, regulator, document_type, chunks_ingested FROM documents;
 
 ---
 
+## Running Tests
+
+```bash
+# 32 route tests (requires running server + infrastructure)
+python test_routes.py
+
+# Parallel smoke tests (end-to-end, ~100s)
+bash test_smoke.sh
+```
+
+---
+
 ## Common Issues
 
-| Issue                          | Fix                                                                              |
-| ------------------------------ | -------------------------------------------------------------------------------- |
-| First request takes 4+ minutes | Reranker model (2.27 GB) downloading on first use — subsequent requests are fast |
-| `No text extracted from PDF`   | Install Tesseract: `brew install tesseract`                                      |
-| `409 Conflict` on upload       | Same document already indexed — intentional dedup by content hash                |
-| `Connection refused :6333`     | Run `docker compose up -d`                                                       |
-| Server exits with code 1       | Activate venv first: `source .venv/bin/activate`                                 |
+| Issue                          | Fix                                                                                               |
+| ------------------------------ | ------------------------------------------------------------------------------------------------- |
+| First request takes 4+ minutes | Reranker model (2.27 GB) downloading on first use — subsequent requests are fast                  |
+| `No text extracted from PDF`   | Install Tesseract: `brew install tesseract`                                                       |
+| `409 Conflict` on upload       | Same document already indexed — intentional dedup by content hash                                 |
+| `Connection refused :6333`     | Run `docker compose up -d`                                                                        |
+| Server exits with code 1       | Activate venv first: `source .venv/bin/activate`                                                  |
+| `307 redirect` in tests        | Use `follow_redirects=True` on httpx clients — FastAPI redirects `/regulations` → `/regulations/` |
 
 ---
 

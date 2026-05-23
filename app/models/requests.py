@@ -1,4 +1,3 @@
-from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -21,9 +20,13 @@ class BusinessAnalysisRequest(BaseModel):
         default=None,
         description="Optionally restrict analysis to specific regulators e.g. CBN, SEC",
     )
-    organization_context: dict[str, Any] | None = Field(
+    organization_context: str | None = Field(
         default=None,
-        description="Additional org context: existing licenses, jurisdiction, etc.",
+        description="Additional org context: existing licenses, jurisdiction, company name, etc.",
+    )
+    session_id: UUID | None = Field(
+        default=None,
+        description="Optional caller-supplied session UUID. All queries sharing this ID are grouped in audit records.",
     )
 
 
@@ -41,6 +44,7 @@ class RegulationUploadRequest(BaseModel):
 class ComplianceGapRequest(BaseModel):
     business_description: str = Field(min_length=20, max_length=5000)
     target_regulators: list[str] | None = None
+    session_id: UUID | None = None
 
 
 class AuditTraceQueryRequest(BaseModel):
