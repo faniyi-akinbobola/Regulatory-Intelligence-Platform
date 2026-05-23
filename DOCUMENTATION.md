@@ -1,8 +1,8 @@
-# Regulatory Intelligence Platform — Complete Technical Documentation
+# Regulatory Intelligence Platform — Technical Documentation
 
-> **Version:** 0.1.0 (MVP)
-> **Stack:** Python 3.12 · FastAPI · LangGraph · Qdrant · PostgreSQL · OpenAI
-> **Last Updated:** May 2026
+> **Audience**: Developers · Product Managers · Executives · Designers · QA Engineers · New Hires
+> **Version**: 0.1.0 (MVP)
+> **Last Updated**: May 2026
 
 ---
 
@@ -31,70 +31,86 @@
 
 ## 1. Executive Summary
 
-### Project Overview
+### What It Is
 
-The **Regulatory Intelligence Platform** is an agentic AI system designed to help businesses, fintechs, compliance teams, and legal professionals understand and navigate Nigerian financial regulations. It accepts natural-language questions about compliance, licensing, and regulatory obligations and returns structured, citation-backed compliance intelligence reports — not chatbot responses.
+The **Regulatory Intelligence Platform** is an AI-powered compliance intelligence system purpose-built for Nigerian financial regulation. It is designed for fintechs, banks, insurance companies, digital lenders, capital market operators, and legal or compliance teams who need rapid, reliable answers to regulatory questions.
+
+When a user describes a business model, product, or planned operation, the platform does not simply look up a FAQ. Instead, it triggers a **6-node LangGraph multi-agent AI workflow** that:
+
+- decomposes the query
+- identifies every Nigerian regulator with jurisdiction
+- retrieves the most relevant chunks from a vetted regulatory document library
+- performs legal reasoning over those chunks
+- generates a structured compliance report with risk scores, obligations, prohibitions, compliance gaps, and a prioritised action checklist
+- verifies every claim against evidence before returning the result
+- and runs an adversarial quality review that can trigger a full re-run if quality is insufficient
+
+**Every output is traceable to a specific regulation, section, and page number.** No legal conclusions are generated from LLM memory alone — all claims must be grounded in retrieved regulatory text.
 
 ### Core Mission
 
-To eliminate the ambiguity, cost, and time burden of manual regulatory research in Nigeria by providing instant, auditable, and citation-grounded compliance analysis for any business activity.
+> Enable any business in Nigeria to understand its regulatory obligations, licensing requirements, and compliance risks — in minutes, not weeks — with the same depth as a qualified compliance officer.
 
 ### Primary Users
 
-| User Type                    | Use Case                                                      |
-| ---------------------------- | ------------------------------------------------------------- |
-| **Fintech founders**         | Determine licensing requirements before launch                |
-| **Compliance officers**      | Check whether internal policies meet CBN/SEC obligations      |
-| **Legal teams**              | Quickly retrieve applicable regulations with citations        |
-| **Product managers**         | Understand what regulatory constraints apply to a new feature |
-| **Executives / boards**      | Receive risk-level reports on business activities             |
-| **Regulatory affairs teams** | Gap analysis between current operations and regulations       |
+| User | Need |
+|---|---|
+| **Fintech founders / CTOs** | Understand licence requirements before building |
+| **Compliance officers** | Rapid compliance gap analysis against specific regulations |
+| **Legal teams** | Citation-backed regulatory research with audit trails |
+| **Product managers** | Identify which features trigger which regulatory obligations |
+| **Investors / due diligence teams** | Assess portfolio company regulatory risk |
+| **New hires / onboarding** | Quickly understand applicable regulatory landscape |
 
 ### Key Value Proposition
 
-- **Speed**: What previously took a compliance lawyer hours to research returns in ~90–120 seconds
-- **Grounding**: Every claim cites a specific regulatory document, section, and page — no hallucinated rules
-- **Auditability**: Every analysis is persisted with a complete agent decision trace for audit review
-- **Structure**: Outputs are compliance checklists, risk matrices, and gap reports — not paragraphs
+Traditional regulatory research in Nigeria requires:
+- Access to expensive compliance lawyers
+- Hours of reading dense legal documents
+- Manual cross-referencing across CBN, SEC, NDIC, FIRS, and other bodies
+- No automated audit trail
 
-### Business Problem Being Solved
-
-Nigeria's financial regulatory landscape spans at least four major regulators (CBN, SEC, NDIC, FIRS) with thousands of pages of guidelines, circulars, and acts that are frequently updated. Businesses routinely:
-
-- Launch products without understanding licensing requirements
-- Miss compliance obligations across overlapping regulatory jurisdictions
-- Pay expensive legal fees for basic regulatory research
-- Expose themselves to regulatory sanctions due to information asymmetry
-
-This platform transforms regulatory documents into a queryable intelligence layer.
+This platform compresses that to ~60–120 seconds with a structured, citation-backed report that can be audited end-to-end.
 
 ---
 
 ## 2. Problem Statement
 
-### The Exact Problem
+### The Industry Pain
 
-Nigerian financial regulation is fragmented, voluminous, and constantly evolving. There is no unified source of truth. CBN, SEC Nigeria, NDIC, and FIRS all issue regulations independently, and many business activities fall under multiple overlapping jurisdictions simultaneously.
+Nigeria's financial regulatory landscape is **fragmented, overlapping, and fast-changing**:
 
-### Current Pain Points
+- **CBN** regulates payments, banking, wallets, mobile money, agent banking, forex, and microfinance banks
+- **SEC Nigeria** governs capital markets, investment products, VASPs, and collective investment schemes
+- **NDIC** oversees deposit insurance and bank resolution
+- **FIRS** enforces corporate tax, VAT, withholding tax, and stamp duties
+- **FCCPC** covers consumer protection and competition
+- **NDPA / NITDA** regulate data protection and IT standards
+- **EFCC / NFIU** enforce AML/CFT
 
-1. **Information fragmentation**: Regulations are scattered across regulator websites in PDF format with no semantic search capability.
-2. **Jurisdictional ambiguity**: A payment wallet product may be subject to CBN guidelines, NDIC deposit protection rules, and FIRS tax obligations — simultaneously.
-3. **Legal research cost**: Engaging a regulatory lawyer for basic compliance questions costs ₦500K–₦2M+ per engagement.
-4. **Hallucination risk in generic AI**: Using general-purpose LLMs like ChatGPT to answer compliance questions is dangerous — they confidently fabricate non-existent regulations.
-5. **Audit trail absence**: Manual legal research produces no structured, reproducible audit record.
+A single fintech product — say, a mobile wallet that also offers yield-bearing savings — may simultaneously trigger CBN (wallet), SEC (investment scheme), NDIC (deposit insurance), FIRS (withholding tax), and NDPA (data protection) obligations. Missing one can lead to:
 
-### Why Existing Solutions Are Insufficient
-
-Generic LLMs lack grounding in specific regulatory documents and hallucinate legal citations. Legal databases (where available) are search-only with no reasoning or synthesis capability. Human compliance consultants are expensive, slow, and not available on-demand.
-
-### Consequences of Not Solving This
-
-- Regulatory sanctions from CBN/SEC for unlicensed operations
-- Criminal liability under BOFIA or CAMA for executives
-- Loss of operating license
+- Regulatory fines
+- Licence revocation
+- Criminal liability for directors
+- Forced product shutdown
 - Reputational damage
-- Investor risk in regulated fintech ventures
+
+### Why Existing Solutions Fail
+
+| Approach | Limitation |
+|---|---|
+| Hire external lawyers | Expensive (₦200k–₦500k/hour), slow (days/weeks), not scalable |
+| Internal compliance teams | Expertise gap, manual research, non-auditable |
+| Generic legal AI (ChatGPT, etc.) | Hallucinated references, not grounded in actual Nigerian documents, no citations |
+| Reading regulations yourself | Requires deep legal expertise, time-consuming |
+
+### Consequences of Non-Compliance
+
+- CBN fines can reach 2% of annual turnover plus ₦2 million/day for ongoing breaches
+- SEC sanctions include suspension of licences and revocation of registrations
+- NDPA non-compliance can result in fines of up to 2% of annual global turnover
+- Criminal liability under EFCC/MLPPA can include imprisonment of directors
 
 ---
 
@@ -102,47 +118,47 @@ Generic LLMs lack grounding in specific regulatory documents and hallucinate leg
 
 ### Main Capabilities
 
-| Capability                        | Description                                                                                                        |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| **Regulatory Document Ingestion** | Upload PDFs from CBN, SEC, NDIC, FIRS. System parses, chunks, embeds, and indexes them.                            |
-| **Business Compliance Analysis**  | Submit a business query; receive a structured compliance report with risk score, obligations, gaps, and citations. |
-| **Audit Trace Retrieval**         | Every analysis is stored. Retrieve the full agent decision trace at any time for audit or review.                  |
-| **Session Chaining**              | Multiple analyses under the same `session_id` for tracking a compliance investigation over time.                   |
+| Capability | Description |
+|---|---|
+| **Business Model Analysis** | Submit a description of any Nigerian business or fintech product; receive a full structured compliance report |
+| **Compliance Gap Analysis** | Describe your current compliance posture; identify what controls, licences, and filings are missing |
+| **Regulatory Document Ingestion** | Upload CBN, SEC, NDIC, FIRS, and other regulatory PDFs; system parses, chunks, embeds, and indexes them |
+| **Audit Trail** | Every analysis is persisted to PostgreSQL with the full agent decision trace for explainability |
+| **Session History** | All analyses in a single console session are grouped by session ID for easy retrieval |
+| **Real-Time Progress** | The Chainlit UI shows live agent step progress as the workflow executes |
+| **Citation Grounding** | Every legal conclusion traces back to a document, section, and page — hallucinated references are flagged |
 
-### Core Workflow
+### User Journeys
 
-```
-1. Compliance team submits query: "Can we offer a wallet with investment features?"
-2. Platform identifies applicable regulators: CBN (wallet), SEC (investment)
-3. Platform retrieves relevant regulation chunks from its knowledge base
-4. Legal reasoning agent synthesises obligations, prohibitions, permissions
-5. Compliance auditor scores risk and identifies gaps
-6. Citation verifier ensures every claim is grounded in retrieved text
-7. Critic agent reviews output quality; may loop for refinement
-8. Structured compliance report returned with audit ID
-```
+#### Journey 1: Business Model Analysis
 
-### User Personas
+1. User opens the Regulatory Intelligence Console at `http://localhost:8080`
+2. User clicks **Analyze Business Model**
+3. User types: *"We are launching a digital lending app in Nigeria offering SME loans via mobile. We use credit scoring and collect repayments via direct debit."*
+4. System queues the workflow and shows live agent progress (7 named steps)
+5. After ~60–90 seconds, the system returns:
+   - Applicable Regulators: `CBN` · `FIRS` · `EFCC / SCUML`
+   - Risk Level: **HIGH**
+   - 4 obligations (CBN licence, KYC/AML, credit bureau reporting, data protection)
+   - 2 prohibitions (no deposit-taking without DMB/MFB licence)
+   - Licensing Requirements: Finance Company Licence (CBN), or MFB licence
+   - Compliance Checklist with 8 items
+   - 7 citations from CBN Consumer Protection, BOFIA 2020, and NDPA 2023
 
-**Persona 1: Sarah — Head of Compliance, Digital Bank**
+#### Journey 2: Compliance Gap Analysis
 
-> "I need to confirm our new overdraft product complies with CBN consumer protection rules before launch. I need a documented compliance review I can show our board."
+1. User clicks **Check Compliance Gaps**
+2. User types: *"We are a CBN-licensed payment processor. We have KYC, an AML policy, and PCI-DSS certification. We recently added a fixed-yield savings product."*
+3. System identifies: the savings product triggers SEC Nigeria collective investment scheme registration, which is missing → flagged as CRITICAL compliance gap
 
-**Persona 2: Tunde — Fintech Founder**
+#### Journey 3: Document Ingestion (Admin/Developer)
 
-> "We're building a P2P lending app. What licenses do we need? Are we subject to FIRS? What are our consumer disclosure obligations?"
-
-**Persona 3: Adeola — Legal Counsel**
-
-> "A client is being investigated by CBN. I need to quickly understand their consumer complaint resolution obligations and whether they've breached any timelines."
-
-### Real-World Use Cases
-
-- **Pre-launch licensing check**: "What CBN licences does a mobile money operator require?"
-- **Consumer protection audit**: "What disclosure requirements apply to our loan product?"
-- **Complaint handling review**: "What are the mandated complaint resolution timelines under CBN regulations?"
-- **Cross-regulatory analysis**: "What obligations apply to a payment company that also handles tax remittances?"
-- **Penalty exposure assessment**: "What sanctions does CBN impose for unresolved consumer complaints?"
+1. Developer POSTs to `POST /regulations/upload` with a PDF and regulator metadata
+2. System parses the PDF (PyMuPDF → pdfplumber → Tesseract OCR fallback)
+3. Chunks the text preserving section numbers, hierarchy, and page references
+4. Generates dense (768-dim) and sparse (BM25) embeddings
+5. Stores both vector types in Qdrant under the `regulations` collection
+6. Saves document metadata to PostgreSQL
 
 ---
 
@@ -150,893 +166,976 @@ Generic LLMs lack grounding in specific regulatory documents and hallucinate leg
 
 ### Architectural Pattern
 
-The platform is a **modular monolith** with **agentic AI orchestration** internally. It is not a microservices architecture (all Python in one process) but is designed for clean separation of concerns between layers, making it straightforward to extract services later.
+The system is a **modular monolith** — a single Python process with clean internal layer separation. It is not a microservices architecture at this stage; all computation happens within one FastAPI application. The separation is conceptual (by layer and responsibility) rather than deployment-based.
+
+This was intentional for MVP: faster development, simpler debugging, no distributed tracing overhead.
+
+### Component Diagram
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│                        CLIENT LAYER                               │
-│  curl / Postman / Chainlit UI / Future Web Frontend               │
-└────────────────────────────┬─────────────────────────────────────┘
-                             │ HTTP REST
-┌────────────────────────────▼─────────────────────────────────────┐
-│                        API LAYER (FastAPI)                        │
-│  POST /regulations/upload                                         │
-│  POST /analysis/analyze-business                                  │
-│  GET  /audit/trace/{id}                                           │
-│  GET  /audit/session/{id}                                         │
-│  GET  /health                                                     │
-└────────────────────────────┬─────────────────────────────────────┘
-                             │
-          ┌──────────────────┼──────────────────┐
-          │                  │                  │
-┌─────────▼──────┐  ┌────────▼──────┐  ┌───────▼────────────┐
-│IngestionService│  │ComplianceServ.│  │ AuditService        │
-│  (document     │  │ (workflow      │  │ (record persistence)│
-│   pipeline)    │  │  orchestration)│  └────────────────────┘
-└─────────┬──────┘  └────────┬──────┘
-          │                  │
-          │         ┌────────▼──────────────────────────────────┐
-          │         │         LANGGRAPH WORKFLOW                 │
-          │         │                                            │
-          │         │  ┌────────────┐    ┌──────────────────┐  │
-          │         │  │Orchestrator│───▶│Jurisdiction Mapper│  │
-          │         │  └────────────┘    └────────┬─────────┘  │
-          │         │                             │             │
-          │         │                    ┌────────▼─────────┐  │
-          │         │                    │  Research Agent   │  │
-          │         │                    │ (RetrievalService)│  │
-          │         │                    └────────┬─────────┘  │
-          │         │                             │             │
-          │         │                    ┌────────▼─────────┐  │
-          │         │                    │ Reasoning Agent   │  │
-          │         │                    └────────┬─────────┘  │
-          │         │                             │             │
-          │         │                    ┌────────▼─────────┐  │
-          │         │                    │  Auditor Agent    │  │
-          │         │                    └────────┬─────────┘  │
-          │         │                             │             │
-          │         │                    ┌────────▼─────────┐  │
-          │         │                    │Citation Verifier  │  │
-          │         │                    └────────┬─────────┘  │
-          │         │                             │             │
-          │         │                    ┌────────▼─────────┐  │
-          │         │          ┌─────────│   Critic Agent    │  │
-          │         │          │ FAIL    └────────┬─────────┘  │
-          │         │          │ (loop)           │ PASS        │
-          │         │          └─────────────────┘             │
-          │         │                    END                    │
-          │         └───────────────────────────────────────────┘
-          │
-┌─────────▼──────────────────────────────────────────────────────┐
-│                      DATA LAYER                                  │
-│                                                                  │
-│  ┌─────────────────┐  ┌──────────────────┐  ┌───────────────┐  │
-│  │   Qdrant         │  │   PostgreSQL      │  │    Redis      │  │
-│  │ (vector DB)      │  │ (audit records,   │  │ (future:      │  │
-│  │ dense + sparse   │  │  document index)  │  │  sessions,    │  │
-│  │ hybrid search    │  │                   │  │  caching)     │  │
-│  └─────────────────┘  └──────────────────┘  └───────────────┘  │
-└────────────────────────────────────────────────────────────────┘
-                             │
-┌────────────────────────────▼───────────────────────────────────┐
-│                    EXTERNAL SERVICES                             │
-│  OpenAI API (gpt-4o-mini)  /  Ollama (local, optional)          │
-└────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                     REGULATORY INTELLIGENCE PLATFORM                │
+│                                                                     │
+│  ┌──────────────────────┐          ┌───────────────────────────┐   │
+│  │   Chainlit UI        │          │     FastAPI Backend        │   │
+│  │   Port 8080          │◄────────►│     Port 8000             │   │
+│  │   (chainlit_app.py)  │  httpx   │     (app/main.py)         │   │
+│  └──────────────────────┘          └────────────┬──────────────┘   │
+│                                                  │                  │
+│                          ┌───────────────────────▼──────────┐      │
+│                          │      LangGraph Workflow           │      │
+│                          │   (app/graph/workflow.py)         │      │
+│                          │                                   │      │
+│                          │  [orchestrator_jurisdiction]      │      │
+│                          │           │                       │      │
+│                          │  [research] ──► [reasoning]       │      │
+│                          │           │         │             │      │
+│                          │       [auditor] ◄───┘             │      │
+│                          │           │                       │      │
+│                          │  [citation_verifier]              │      │
+│                          │           │                       │      │
+│                          │      [critic] ────► END           │      │
+│                          │           │                       │      │
+│                          │      (loop back to reasoning      │      │
+│                          │       if FAIL, max 2x)            │      │
+│                          └───────────────────────────────────┘      │
+│                                                                     │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────────┐  │
+│  │   Qdrant     │  │  PostgreSQL  │  │   Redis                  │  │
+│  │   Port 6333  │  │  Port 5432   │  │   Port 6379              │  │
+│  │   Dense+BM25 │  │  Audit + Docs│  │   (provisioned, unused)  │  │
+│  └──────────────┘  └──────────────┘  └──────────────────────────┘  │
+│                                                                     │
+│  ┌──────────────────────────────────────────────────────────────┐  │
+│  │                    External Services                          │  │
+│  │  OpenAI API (gpt-4o-mini)  │  Ollama (local, optional)       │  │
+│  └──────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
-### Major Components
+### Layer Separation
 
-| Component           | Technology                        | Responsibility                                   |
-| ------------------- | --------------------------------- | ------------------------------------------------ |
-| **API Server**      | FastAPI + uvicorn                 | HTTP request handling, routing, validation       |
-| **Workflow Engine** | LangGraph                         | Multi-agent state machine orchestration          |
-| **Vector Store**    | Qdrant                            | Semantic + keyword search over regulation chunks |
-| **Relational DB**   | PostgreSQL + SQLAlchemy async     | Persistent audit records, document registry      |
-| **Cache/Session**   | Redis                             | Provisioned, reserved for future session state   |
-| **LLM Provider**    | OpenAI gpt-4o-mini (or Ollama)    | Natural language reasoning across all agents     |
-| **Dense Embedder**  | `BAAI/bge-base-en-v1.5` (768-dim) | Semantic similarity encoding                     |
-| **Sparse Embedder** | `Qdrant/bm25` via fastembed       | Keyword (BM25) search vectors                    |
-| **Reranker**        | `BAAI/bge-reranker-v2-m3`         | Cross-encoder re-ranking of retrieved chunks     |
-| **PDF Parser**      | PyMuPDF + pdfplumber + Tesseract  | Regulatory document parsing and OCR              |
+```
+Request → API Layer (FastAPI routes)
+            ↓
+        Service Layer (ComplianceService, IngestionService, AuditService)
+            ↓
+        Graph/Agent Layer (LangGraph nodes → individual agents)
+            ↓
+        Repository Layer (VectorRepository, AuditRepository, DocumentRepository)
+            ↓
+        Database Layer (Qdrant, PostgreSQL)
+```
+
+Each layer has **one responsibility** and does not reach past its adjacent layer.
 
 ---
 
 ## 5. Detailed Backend Documentation
 
-### Folder Structure
+### Repository Root Structure
+
+```
+Regulatory-Intelligence-Platform/
+├── app/                             # All backend Python source code
+├── data/                            # Local document storage (raw PDFs, ingested files)
+├── tests/                           # Pytest test suite
+├── scripts/                         # Utility scripts (reset_collection.py, etc.)
+├── .chainlit/                       # Chainlit config + i18n translations
+├── .env                             # Local environment variables (not committed)
+├── .env.example                     # Environment variable template (committed)
+├── .gitignore
+├── chainlit_app.py                  # Chainlit frontend — Regulatory Intelligence Console (614 lines)
+├── chainlit.md                      # Chainlit welcome screen content
+├── docker-compose.yml               # PostgreSQL 16, Qdrant, Redis containers
+├── Example-Queries.md               # 50 example queries (25 business model, 25 compliance gap)
+├── DOCUMENTATION.md                 # This file — full technical documentation
+├── README.md                        # Project overview and quick-start
+├── pyproject.toml                   # Python project metadata + dependencies (uv)
+├── uv.lock                          # Locked dependency tree
+├── server.sh                        # Server management script (start / stop / status)
+├── test_routes.py                   # Full async route test suite (12 tests)
+└── test_smoke.sh                    # Bash smoke test suite for CI
+```
+
+### Application Folder Structure
 
 ```
 app/
-├── main.py                    # FastAPI app, lifespan, router registration
-│
+├── main.py                          # FastAPI app: lifespan, CORS, router registration
+├── core/
+│   └── config.py                    # Pydantic Settings loaded from .env
 ├── api/
+│   ├── dependencies.py              # Optional + required auth dependencies
 │   └── routes/
-│       ├── regulations.py     # POST /regulations/upload
-│       ├── analysis.py        # POST /analysis/analyze-business
-│       └── audit.py           # GET /audit/trace/{id}, /audit/session/{id}
-│
-├── agents/                    # One file per LangGraph agent
-│   ├── orchestrator.py        # Query decomposition + task planning
-│   ├── jurisdiction_mapper.py # Regulator identification
-│   ├── reasoning.py           # Legal synthesis
-│   ├── auditor.py             # Risk scoring + gap analysis
-│   ├── citation_verifier.py   # Hallucination prevention
-│   └── critic.py              # Adversarial quality review
-│
+│       ├── health.py                # GET /health
+│       ├── regulations.py           # POST /regulations/upload, GET /regulations/, DELETE /regulations/{id}
+│       ├── analysis.py              # POST /analyze/analyze-business, /analyze/compliance-gap, GET /analyze/report/{id}, GET /analyze/report/{id}/stream
+│       └── audit.py                 # GET /audit/trace/{id}, GET /audit/session/{id}
 ├── graph/
-│   ├── state.py               # AgentState TypedDict (shared workflow state)
-│   ├── nodes.py               # LangGraph node functions (one per agent)
-│   └── workflow.py            # Graph construction + compilation
-│
+│   ├── state.py                     # AgentState TypedDict — shared workflow state
+│   ├── nodes.py                     # LangGraph node functions (one per agent step)
+│   └── workflow.py                  # StateGraph construction, edge wiring, compile()
+├── agents/
+│   ├── orchestrator.py              # run_orchestrator() — query decomposition
+│   ├── jurisdiction_mapper.py       # run_jurisdiction_mapping() — regulator identification
+│   ├── reasoning.py                 # run_reasoning() — legal synthesis
+│   ├── auditor.py                   # run_audit() — risk assessment + gaps
+│   ├── citation_verifier.py         # run_citation_verification() — grounding check
+│   └── critic.py                    # run_critic() — adversarial quality review
+├── prompts/
+│   ├── orchestrator.py              # ORCHESTRATOR_SYSTEM_PROMPT
+│   ├── jurisdiction_mapper.py       # JURISDICTION_MAPPER_SYSTEM_PROMPT
+│   ├── reasoning.py                 # REASONING_SYSTEM_PROMPT
+│   ├── auditor.py                   # AUDITOR_SYSTEM_PROMPT
+│   ├── citation_verifier.py         # CITATION_VERIFIER_SYSTEM_PROMPT
+│   └── critic.py                    # CRITIC_SYSTEM_PROMPT
 ├── services/
-│   ├── compliance_service.py  # Orchestrates LangGraph + audit persistence
-│   ├── ingestion_service.py   # Document ingestion pipeline
-│   ├── retrieval_service.py   # 8-step RAG pipeline
-│   ├── embedding_service.py   # Dense embeddings (sentence-transformers)
+│   ├── compliance_service.py        # Orchestrates LangGraph invoke + audit persistence
+│   ├── ingestion_service.py         # Full PDF → chunk → embed → store pipeline
+│   ├── retrieval_service.py         # 7-step RAG pipeline
+│   ├── embedding_service.py         # Dense embeddings (SentenceTransformers)
 │   ├── sparse_embedding_service.py  # BM25 sparse embeddings (fastembed)
-│   └── audit_service.py       # Creates + retrieves audit records
-│
+│   └── audit_service.py             # AuditRecord CRUD + session queries
 ├── repositories/
-│   ├── vector_repository.py   # Qdrant upsert + hybrid search
-│   ├── document_repository.py # PostgreSQL document registry CRUD
-│   └── audit_repository.py    # PostgreSQL audit record CRUD
-│
+│   ├── vector_repository.py         # Qdrant upsert + hybrid search + RRF fusion
+│   ├── document_repository.py       # DocumentRecord CRUD + hash dedup
+│   └── audit_repository.py          # AuditRecord CRUD + session listing
 ├── models/
-│   └── database_models.py     # SQLAlchemy ORM models (DocumentRecord, AuditRecord)
-│
+│   ├── requests.py                  # Pydantic request models (BusinessAnalysisRequest, etc.)
+│   ├── responses.py                 # Pydantic response models (ReportStatusResponse, etc.)
+│   └── database_models.py           # SQLAlchemy ORM (DocumentRecord, AuditRecord)
 ├── db/
-│   ├── postgres.py            # Async engine, session factory, init_db()
-│   └── qdrant.py              # Async Qdrant client, collection init
-│
-├── utils/
-│   ├── llm_client.py          # Unified OpenAI/Ollama async chat client
-│   ├── chunking.py            # Legal document chunking (section-aware)
-│   ├── parsers.py             # PDF parsing (PyMuPDF + pdfplumber + OCR)
-│   ├── reranking.py           # Cross-encoder reranking singleton
-│   └── citations.py           # Citation string formatting utilities
-│
-├── prompts/                   # System prompt constants per agent
-│   ├── orchestrator.py
-│   ├── jurisdiction_mapper.py
-│   ├── reasoning.py
-│   ├── auditor.py
-│   ├── citation_verifier.py
-│   └── critic.py
-│
-└── core/
-    └── config.py              # Pydantic Settings, loaded from .env
+│   ├── postgres.py                  # Async SQLAlchemy engine, session factory, Base, init_db()
+│   └── qdrant.py                    # AsyncQdrantClient singleton, collection init with dense+sparse
+└── utils/
+    ├── llm_client.py                # Unified OpenAI/Ollama async chat client
+    ├── cost_tracker.py              # Per-request token cost tracking via contextvars
+    ├── chunking.py                  # Section-aware legal document chunker
+    ├── parsers.py                   # PDF parsing: PyMuPDF + pdfplumber + Tesseract OCR
+    ├── reranking.py                 # Cross-encoder reranking (BAAI/bge-reranker-v2-m3)
+    └── citations.py                 # Citation formatting utilities
 ```
 
-### Design Patterns
+### Startup Lifecycle (app/main.py)
 
-| Pattern                  | Where Applied                                                                                          |
-| ------------------------ | ------------------------------------------------------------------------------------------------------ |
-| **Repository pattern**   | `AuditRepository`, `DocumentRepository`, `VectorRepository` — isolates DB access from business logic   |
-| **Service layer**        | `ComplianceService`, `IngestionService`, `AuditService` — all business logic lives here, not in routes |
-| **Dependency injection** | FastAPI `Depends(get_db_session)`, `Depends(get_qdrant_client)` for testability                        |
-| **Singleton**            | Reranker model, Qdrant client, sparse embedding model — loaded once, reused across requests            |
-| **Strategy pattern**     | `llm_client.chat()` routes to OpenAI or Ollama based on `settings.llm_provider` config                 |
-| **State machine**        | LangGraph `StateGraph` with typed state transitions                                                    |
+On startup (`lifespan` async context manager), in order:
 
-### Application Startup Lifecycle
+1. `await init_db()` — creates PostgreSQL tables via SQLAlchemy `create_all` (idempotent)
+2. `await init_qdrant_collection()` — creates the `regulations` collection with dense+sparse vector config if it doesn't exist
+3. `_get_reranker()` runs in an executor (thread pool) to pre-load the 2.27 GB cross-encoder model synchronously without blocking the event loop
 
-`app/main.py` uses FastAPI's `lifespan` context manager:
+This ensures all I/O-heavy initialisation completes before the first request is accepted.
 
-```
-1. logging.basicConfig() — configure structured logging
-2. await init_db()        — SQLAlchemy creates PostgreSQL tables if not exist
-3. await init_qdrant_collection() — creates Qdrant 'regulations' collection with
-                                    dense (768-dim cosine) + sparse (BM25) vectors
-                                    if not already present
-4. yield (server running)
-5. Shutdown logged
-```
+### Configuration (app/core/config.py)
 
-### Configuration Management
-
-All configuration lives in `app/core/config.py` using `pydantic-settings`. Values are loaded from a `.env` file automatically.
+All configuration is loaded from `.env` via `pydantic-settings`. Accessed application-wide via the `settings` singleton:
 
 ```python
-# Key settings
-llm_provider: str = "openai"          # "openai" or "ollama"
-openai_api_key: str = ""              # Set in .env
-openai_model: str = "gpt-4o-mini"
-openai_url: str = "https://api.openai.com/v1/chat/completions"
-llm_base_url: str = "http://localhost:11434"  # Ollama
-embedding_model_name: str = "BAAI/bge-base-en-v1.5"
-embedding_dimension: int = 768
-qdrant_collection_name: str = "regulations"
+from app.core.config import settings
+settings.postgres_url      # computed property
+settings.openai_api_key
+settings.qdrant_collection_name
+settings.embedding_model_name
 ```
 
-### Dependency Injection
+The `Settings` class uses `extra="ignore"` so undeclared `.env` variables do not raise errors. All values have sensible defaults to prevent crashes in CI environments without a `.env` file.
 
-Routes receive database sessions via FastAPI's dependency system:
+### Request Lifecycle (Analysis)
 
-```python
-@router.post("/analyze-business")
-async def analyze_business(
-    request: AnalysisRequest,
-    db: AsyncSession = Depends(get_db_session),  # injected
-):
+```
+POST /analyze/analyze-business
+        │
+        ▼
+FastAPI validates BusinessAnalysisRequest (Pydantic)
+        │
+        ▼
+Background task _run_workflow() is scheduled
+        │
+        ▼ (response returned immediately)
+AnalysisInitiatedResponse { report_id, workflow_status: "pending" }
+        │
+        │  (background)
+        ▼
+ComplianceService.analyze()
+        │
+        ▼
+workflow.ainvoke(initial_state)  — runs full LangGraph graph
+        │
+        ▼
+AuditService.create_record()     — persists to PostgreSQL
+        │
+        ▼
+_reports[report_id] = { status: "completed", report: result }
+
+        (meanwhile, UI polls)
+GET /analyze/report/{report_id}
+        │
+        ▼
+ReportStatusResponse { status, report, audit_id, llm_metrics, ... }
 ```
 
-`get_db_session()` in `app/db/postgres.py` yields an `AsyncSession`, auto-commits on success, rolls back on exception, and closes after the request.
+### Background Task Pattern
+
+The analysis workflow takes 60–120 seconds. FastAPI's `BackgroundTasks` is used to schedule `_run_workflow()` as a fire-and-forget task. The client receives `HTTP 200` immediately with a `report_id`, then polls `GET /analyze/report/{report_id}` every 3 seconds.
+
+Results are stored in `_reports: dict[str, dict]` — an in-memory Python dictionary on the process. This is intentionally simple for the MVP; the plan is to replace it with Redis in production.
+
+### Authentication (app/api/dependencies.py)
+
+Two dependency types are defined:
+
+- `OptionalUser` — reads Bearer token if present; allows unauthenticated access. Used on all current routes.
+- `CurrentUser` — raises `HTTP 401` if no token provided. Reserved for future protected routes.
+
+Token verification is scaffolded but not fully implemented — it currently returns a placeholder dict. JWT validation against a user database is the intended implementation.
 
 ### Error Handling
 
-- **Route level**: `HTTPException` raised for known errors (404 not found, 400 bad request, 409 conflict)
-- **Service level**: `ValueError` raised for business rule violations (e.g., zero chunks after parsing), caught and converted to HTTP 500 in routes
-- **Agent level**: Each agent has a `try/except json.JSONDecodeError` fallback that returns a safe default dict — the workflow never crashes due to a malformed LLM response
-- **Retrieval level**: `_expand_queries` and `_compress_chunk` both have `except Exception` guards with `logger.debug` — gracefully degrade to original query / uncompressed chunk
+Each API route uses `HTTPException` with explicit status codes:
 
-### Validation
+| Code | Condition |
+|---|---|
+| `400` | Non-PDF file uploaded |
+| `404` | Report or audit record not found |
+| `409` | Duplicate document (identical SHA256 hash) |
+| `422` | Document parsing failed (zero text extracted) |
+| `500` | Unhandled exception (surfaced via `error` field) |
 
-- **Request validation**: Pydantic `BaseModel` on all request bodies via FastAPI — wrong types return HTTP 422 automatically
-- **File validation**: `file.content_type != "application/pdf"` check in upload route
-- **Deduplication**: SHA-256 hash check before ingesting a document — returns HTTP 409 if content already indexed
-- **UUID validation**: `uuid.UUID(audit_id)` parse attempt in `AuditService.get_record()` — returns `None` on invalid UUID
+Agents individually catch `json.JSONDecodeError` and return structured fallback dicts rather than propagating exceptions. This prevents a malformed LLM response from crashing the entire workflow.
 
-### Async Architecture
+### Middleware
 
-The entire backend is async (`async def` throughout). Key async boundaries:
+`CORSMiddleware` is the only middleware applied. Origins are configured via `settings.allowed_origins` (defaults to `localhost:3000` and `localhost:8000`). Production deployments should restrict this to the actual frontend domain.
 
-- All database operations via `asyncpg` through SQLAlchemy async engine
-- All Qdrant operations via `AsyncQdrantClient`
-- All LLM calls via `httpx.AsyncClient`
-- All LangGraph node functions are `async def`
-- `asyncio.gather()` used in `_compress_chunks()` for concurrent chunk compression
+### Async Strategy
+
+The entire application is async-first:
+- All database queries use SQLAlchemy `async_sessionmaker` + `AsyncSession`
+- Qdrant uses `AsyncQdrantClient`
+- All LLM calls use `httpx.AsyncClient`
+- The orchestrator and jurisdiction mapper run in **parallel** via `asyncio.gather()` — saving 8–12 seconds per request
+- The cross-encoder reranker is CPU-bound (no async API) and is called synchronously inside the async node function — this blocks the event loop briefly. The startup loader pre-warms the model to avoid first-request penalties
 
 ---
 
 ## 6. Frontend Documentation
 
-### Current Status
+### Technology
 
-The MVP has **no dedicated frontend**. The system is a pure REST API consumed via curl, Postman, or any HTTP client.
+The frontend is built with **Chainlit 2.11.1** — a Python-native framework for building conversational AI interfaces. It connects to the FastAPI backend via httpx.
 
-**Chainlit** is provisioned in the architecture plan as a "Regulatory Intelligence Console" (not a chatbot UI). It will visualize:
+The UI is intentionally positioned as a **Regulatory Intelligence Console**, not a chatbot. It does not accept arbitrary free-text conversation — it routes all interactions through structured workflows.
 
-- Active workflow stages and agent traces
-- Compliance reports with structured sections
-- Risk scores and citations
-- Audit history per session
+### Session Management
 
-### Planned Frontend Architecture
+When a user opens a new browser tab or starts a new chat:
+
+1. `@cl.on_chat_start` fires
+2. A fresh `uuid.uuid4()` is generated as `console_session_id`
+3. This UUID is stored in `cl.user_session` — a per-connection server-side session store
+4. Every API request payload includes `"session_id": console_session_id`
+5. All analyses in one browser session share the same `session_id` in audit records
+6. Opening a new chat creates a new UUID → separate audit history
+
+### Interaction Flow
 
 ```
-Chainlit Application
-├── Workflow visualization panel (LangGraph step progress)
-├── Compliance report renderer (obligations / checklist / citations)
-├── Risk score dashboard (score + risk level + recommendations)
-├── Agent trace explorer (expandable decision tree per agent)
-└── Document upload interface (drag-and-drop regulation PDFs)
+User opens console
+        │
+        ▼
+on_chat_start(): health check, generate UUID, render welcome screen with action buttons
+        │
+User clicks "Analyze Business Model"
+        │
+        ▼
+on_analyze_action(): sets mode="analyze" in user_session, prompts for description
+        │
+User types description and presses Enter
+        │
+        ▼
+on_message(): reads mode, validates length (>=20 chars), calls _run_analysis()
+        │
+        ▼
+_run_analysis():
+  1. POST to /analyze/analyze-business
+  2. Display report_id + "Running workflow..." message
+  3. Open cl.Step("Multi-Agent Workflow") with live update
+  4. Poll /analyze/report/{id} every 3s for up to 60 attempts (3 min)
+  5. On "completed": close step, render individual agent steps, render report
+  6. Display follow-up actions
 ```
 
-**Note**: Chainlit is not yet implemented. This section describes the intended design per the architecture document.
+### Report Rendering
+
+The `_build_report_message()` function assembles the full structured report as Markdown. It renders:
+
+- Risk level with colour badge
+- Risk score bar (`█████░░░░░  5/10`)
+- Applicable regulators as inline code badges
+- Executive summary paragraph
+- Obligations, prohibitions, permissions (lists)
+- Regulatory conflicts (if detected)
+- Licensing requirements (with regulator badges and legal basis)
+- Compliance gaps (with risk levels and remediation actions)
+- Compliance checklist (MET / UNMET / UNKNOWN)
+- Recommendations
+- Regulatory citations (with source document, section, page)
+- Audit metadata table (Audit ID, Session ID, Grounding Score, Hallucination Risk, Iterations)
+
+### Chainlit Steps
+
+Agent execution is visualised as collapsible `cl.Step` elements:
+
+- `Multi-Agent Workflow` — top-level container step
+- One step per agent in the `agent_trace` array
+- `Sources Retrieved` — lists citation documents with page numbers
+- `Workflow Metrics` — token counts, LLM calls, cost in USD
+
+### API Communication
+
+All httpx clients use:
+- `follow_redirects=True` (FastAPI redirects `/regulations` → `/regulations/` with HTTP 307)
+- Appropriate timeouts: 10s for GET requests, 30s for POST submissions, 3s poll retries
 
 ---
 
 ## 7. Database Documentation
 
-### Database Overview
+### Databases Used
 
-| Database       | Technology                                   | Purpose                                                                      |
-| -------------- | -------------------------------------------- | ---------------------------------------------------------------------------- |
-| **PostgreSQL** | PostgreSQL 16 via asyncpg + SQLAlchemy async | Persistent relational storage for audit records and document registry        |
-| **Qdrant**     | Qdrant (latest)                              | Vector database for semantic + keyword search over regulation chunks         |
-| **Redis**      | Redis 7                                      | Provisioned for future session management and query caching — dormant in MVP |
-
----
+| Database | Purpose | Client |
+|---|---|---|
+| **PostgreSQL 16** | Persistent audit records, document registry | SQLAlchemy async + asyncpg |
+| **Qdrant** | Vector embeddings for regulatory text retrieval | AsyncQdrantClient |
+| **Redis 7** | Provisioned, reserved for session state and caching | Not yet used |
 
 ### PostgreSQL Schema
 
-#### Table: `documents`
+#### documents table
 
-Tracks every regulation document ingested into the system.
+Tracks every regulatory PDF that has been ingested.
 
-| Column            | Type                     | Description                                                         |
-| ----------------- | ------------------------ | ------------------------------------------------------------------- |
-| `id`              | SERIAL PRIMARY KEY       | Auto-increment integer                                              |
-| `file_name`       | VARCHAR(512)             | Original filename (e.g., "CBN Consumer Protection Regulations.pdf") |
-| `file_hash`       | VARCHAR(64) UNIQUE INDEX | SHA-256 hash for deduplication                                      |
-| `regulator`       | VARCHAR(100)             | e.g., "CBN", "SEC", "NDIC", "FIRS"                                  |
-| `document_type`   | VARCHAR(100)             | e.g., "Regulation", "Circular", "Act", "Guideline"                  |
-| `total_pages`     | INTEGER                  | Total parsed pages                                                  |
-| `chunks_ingested` | INTEGER                  | Number of semantic chunks stored in Qdrant                          |
-| `ingested_at`     | TIMESTAMPTZ              | UTC timestamp of ingestion                                          |
-| `notes`           | TEXT                     | Optional operator notes                                             |
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `INTEGER` | Auto-increment primary key |
+| `file_name` | `VARCHAR(512)` | Original filename |
+| `file_hash` | `VARCHAR(64)` | SHA256 hash, unique, indexed — prevents duplicate ingestion |
+| `regulator` | `VARCHAR(100)` | e.g. "CBN", "SEC Nigeria" |
+| `document_type` | `VARCHAR(100)` | e.g. "Regulation", "Circular", "Act" |
+| `total_pages` | `INTEGER` | Page count from parser |
+| `chunks_ingested` | `INTEGER` | Number of chunks stored in Qdrant |
+| `ingested_at` | `TIMESTAMPTZ` | UTC timestamp, auto-populated |
+| `notes` | `TEXT` | Optional free-text notes |
 
-#### Table: `audit_records`
+#### audit_records table
 
-Stores the complete state of every workflow execution for auditability.
+Full audit trail for every compliance analysis. Each row represents one complete workflow execution.
 
-| Column                 | Type             | Description                                              |
-| ---------------------- | ---------------- | -------------------------------------------------------- |
-| `id`                   | UUID PRIMARY KEY | Auto-generated UUID — returned to callers as `audit_id`  |
-| `session_id`           | UUID INDEX       | Links multiple analyses in one investigation             |
-| `query`                | TEXT             | Original user query                                      |
-| `organization_context` | TEXT             | Optional business context provided by caller             |
-| `target_regulators`    | JSON             | List of regulators identified by jurisdiction agent      |
-| `agent_trace`          | JSON             | Ordered list of `{agent, status}` for each node executed |
-| `jurisdiction_result`  | JSON             | Full output of the Jurisdiction Mapper agent             |
-| `reasoning_result`     | JSON             | Full output of the Reasoning agent                       |
-| `audit_result`         | JSON             | Full output of the Auditor agent                         |
-| `citation_result`      | JSON             | Full output of the Citation Verifier agent               |
-| `critic_result`        | JSON             | Full output of the Critic agent                          |
-| `final_report`         | JSON             | Assembled compliance report                              |
-| `overall_risk_level`   | VARCHAR(20)      | CRITICAL / HIGH / MEDIUM / LOW                           |
-| `hallucination_risk`   | VARCHAR(20)      | NONE / LOW / MEDIUM / HIGH                               |
-| `grounding_score`      | INTEGER          | % of claims verified by Citation agent (0–100)           |
-| `iteration_count`      | INTEGER          | How many critic–reasoning loops occurred                 |
-| `status`               | VARCHAR(20)      | Always "COMPLETED" in current implementation             |
-| `duration_ms`          | INTEGER          | End-to-end workflow duration in milliseconds             |
-| `created_at`           | TIMESTAMPTZ      | Server-generated UTC timestamp                           |
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `UUID` | Primary key, auto-generated |
+| `session_id` | `UUID` | Indexed — links records to a user session |
+| `query` | `TEXT` | The original user query |
+| `organization_context` | `TEXT` | Optional context provided with the query |
+| `target_regulators` | `JSON` | List of regulators identified by jurisdiction agent |
+| `agent_trace` | `JSON` | Array of {agent, status} objects |
+| `jurisdiction_result` | `JSON` | Full output of the jurisdiction mapping agent |
+| `reasoning_result` | `JSON` | Full output of the reasoning agent |
+| `audit_result` | `JSON` | Full output of the compliance auditor agent |
+| `citation_result` | `JSON` | Full output of the citation verifier agent |
+| `critic_result` | `JSON` | Full output of the critic agent |
+| `final_report` | `JSON` | Assembled final compliance report |
+| `overall_risk_level` | `VARCHAR(20)` | CRITICAL / HIGH / MEDIUM / LOW |
+| `hallucination_risk` | `VARCHAR(20)` | NONE / LOW / MEDIUM / HIGH |
+| `grounding_score` | `INTEGER` | 0–100: percentage of verified citations |
+| `iteration_count` | `INTEGER` | Number of reasoning loops (max 2) |
+| `status` | `VARCHAR(20)` | Always "COMPLETED" for now |
+| `duration_ms` | `INTEGER` | Workflow wall-clock time in milliseconds |
+| `created_at` | `TIMESTAMPTZ` | Server-side default timestamp |
 
-#### Entity Relationship
+### Qdrant Collection: regulations
 
-```
-documents (1) ←——————————————— (many) [Qdrant vectors]
-                                        (linked by source filename in payload)
+The `regulations` collection stores regulatory text chunks as hybrid (dense + sparse) vectors.
 
-audit_records (many) ——————————— (1) session_id
-                                        (UUID used to group related analyses)
-```
+**Vector configuration:**
 
-### Qdrant Schema
+| Vector name | Type | Dimensions | Distance | Model |
+|---|---|---|---|---|
+| `dense` | Float | 768 | Cosine | `BAAI/bge-base-en-v1.5` |
+| `sparse` | Sparse | Variable | — | `Qdrant/bm25` (BM25) |
 
-**Collection name**: `regulations`
+**Point payload (metadata per chunk):**
 
-**Vector configuration**:
+| Field | Description |
+|---|---|
+| `text` | The actual regulatory text of the chunk |
+| `source` | Document file name |
+| `page` | 1-based page number |
+| `section` | Section number (e.g. "Section 23", "3.2") |
+| `title` | Section title |
+| `hierarchy` | List of parent headings (e.g. ["PART II", "CHAPTER 1", "Section 9"]) |
+| `regulator` | Issuing regulator |
+| `document_type` | Type of document |
+| `issued_date` | ISO date string for freshness scoring |
 
-- `"dense"`: 768-dimensional cosine similarity (BAAI/bge-base-en-v1.5 output)
-- `"sparse"`: BM25 sparse vectors (Qdrant/bm25 via fastembed)
-
-**Point payload** (stored per chunk):
-
-| Field           | Type         | Description                                                    |
-| --------------- | ------------ | -------------------------------------------------------------- |
-| `text`          | string       | The regulation text content                                    |
-| `source`        | string       | PDF filename                                                   |
-| `page`          | integer      | 1-based page number                                            |
-| `section`       | string       | Section identifier (e.g., "PART FOUR", "4.1")                  |
-| `title`         | string       | Section title text                                             |
-| `hierarchy`     | list[string] | Breadcrumb path (e.g., ["PART TWO", "3.1 GENERAL PROVISIONS"]) |
-| `regulator`     | string       | e.g., "CBN" — used for metadata filtering                      |
-| `document_type` | string       | e.g., "Regulation", "Circular" — used for filtering            |
-| `issued_date`   | string       | ISO date for freshness scoring                                 |
-
-**Point ID strategy**: Deterministic MD5-based UUID from `{document_name}::{chunk_index}` — re-ingesting the same document overwrites rather than duplicates.
-
-### Data Lifecycle
-
-```
-PDF Upload
-    │
-    ▼
-parse_document() ──── PyMuPDF primary, pdfplumber for tables, Tesseract for images
-    │
-    ▼
-chunk_document() ──── Section-aware chunking preserving section numbers + hierarchy
-    │
-    ▼
-embed_texts() ──────── BAAI/bge-base-en-v1.5 dense vectors (batch 32)
-    │
-    ▼
-sparse embed() ──────── Qdrant/bm25 sparse BM25 vectors
-    │
-    ▼
-VectorRepository.upsert() ──── Qdrant write (deterministic IDs)
-    │
-    ▼
-DocumentRepository.save() ──── PostgreSQL document registry entry
-```
+**Chunk IDs** are deterministic: `UUID(MD5("{document_name}::{chunk_index}"))`. Re-ingesting the same document with the same name will overwrite existing vectors rather than creating duplicates.
 
 ### Migration Strategy
 
-Currently: `Base.metadata.create_all` on startup creates tables if they do not exist.
-**Production recommendation**: Migrate to Alembic (already in `pyproject.toml` dependencies) for versioned schema migrations. Scripts in `alembic/versions/` would replace the `create_all` call.
+Currently using SQLAlchemy `create_all()` on startup (development-friendly, not production-safe). `alembic` is listed as a dependency for when schema migrations are needed. The migration from `create_all` to Alembic is a planned improvement.
 
 ---
 
 ## 8. AI / LLM / RAG Documentation
 
-### Why AI/LLM is Used
+### Why AI/LLM Is Used
 
-Regulatory compliance is a language-heavy domain. Rules are expressed in natural language with legal nuance, cross-references, and contextual interpretation requirements. LLMs provide:
+Nigerian regulatory documents are dense, lengthy, cross-referencing legal texts. No single lookup can answer "does my business need a CBN licence?" — it requires:
+1. Understanding the business model described in natural language
+2. Mapping it to applicable regulators
+3. Retrieving the exact sections of law that apply
+4. Synthesising obligations across multiple documents from multiple regulators
+5. Identifying what the business is missing
+6. Validating that every conclusion is evidence-based
 
-1. **Query understanding** — mapping "can I launch a wallet?" to precise regulatory questions
-2. **Legal synthesis** — identifying obligations, prohibitions, and conflicts across multiple retrieved chunks
-3. **Risk reasoning** — assessing compliance risk relative to a specific business context
-4. **Adversarial review** — checking whether the analysis is logically consistent
+This is exactly what LLMs combined with structured retrieval are designed for.
 
 ### LLM Configuration
 
-| Setting             | Value                              | Notes                                    |
-| ------------------- | ---------------------------------- | ---------------------------------------- |
-| **Provider**        | OpenAI (default) or Ollama (local) | Controlled by `llm_provider` in config   |
-| **Model**           | `gpt-4o-mini`                      | Configurable via `openai_model`          |
-| **Unified client**  | `app/utils/llm_client.py`          | All 9 LLM call sites go through `chat()` |
-| **Ollama fallback** | `qwen2.5:14b` / `qwen2.5:7b`       | For local/offline operation              |
+| Setting | Default | Alternative |
+|---|---|---|
+| Provider | `openai` | `ollama` |
+| Model | `gpt-4o-mini` | `qwen2.5:14b` / `qwen2.5:7b` |
+| Entry point | `chat()` in `app/utils/llm_client.py` | Same |
 
-### Multi-Agent Workflow Architecture
+The `chat()` function is the single LLM entry point for the entire system. Every agent uses it. Switching provider requires only a `.env` change — no code changes.
 
-The system uses **LangGraph** — a stateful directed graph for orchestrating AI agents. The workflow is a Directed Acyclic Graph (with one conditional back-edge for quality looping).
+**Cost profile (OpenAI gpt-4o-mini, per analysis):**
+- ~6 LLM calls
+- ~28,000 tokens total
+- ~$0.006 per request
 
-#### Agent Responsibilities
+### Cost Tracking
 
-**Agent 1: Orchestrator** (`orchestrator.py`)
-
-- Input: raw user query + optional organization context
-- Output: `task_breakdown` (subtask list), `target_regulators` (e.g., ["CBN", "SEC"]), `context_summary`, `query_type`
-- LLM timeout: 60 seconds
-- Role: Does NOT perform legal analysis — only task decomposition and routing
-
-**Agent 2: Jurisdiction Mapper** (`jurisdiction_mapper.py`)
-
-- Input: query + context summary from orchestrator
-- Output: `applicable_regulators` (list with regulator + jurisdiction rationale), `overlap_risks`, `primary_regulator`
-- LLM timeout: 60 seconds
-- Role: Identifies which of CBN / SEC / NDIC / FIRS / FCCPC / NITDA / NDPA apply
-
-**Agent 3: Research** (via `RetrievalService`)
-
-- No LLM call for retrieval itself — uses embedding models
-- LLM used for query expansion (timeout: 30s) and contextual compression (timeout: 20s per chunk)
-- Role: Retrieves the most relevant regulation chunks from Qdrant via 8-step pipeline (see below)
-
-**Agent 4: Regulatory Reasoning** (`reasoning.py`)
-
-- Input: original query + retrieved chunks + jurisdiction result
-- Output: `obligations`, `prohibitions`, `permissions`, `conflicts`, `reasoning_summary`, `confidence`
-- LLM timeout: 180 seconds (most complex step)
-- Role: Performs actual legal synthesis — every conclusion must cite a specific chunk
-
-**Agent 5: Compliance Auditor** (`auditor.py`)
-
-- Input: query + reasoning output + top-10 retrieved chunks
-- Output: `risk_score` (1–10), `risk_level`, `compliance_gaps`, `compliance_checklist`, `licensing_requirements`, `recommendations`
-- LLM timeout: 120 seconds
-- Role: Structured risk assessment and gap analysis
-
-**Agent 6: Citation Verifier** (`citation_verifier.py`)
-
-- Input: reasoning output + audit output + all retrieved chunks
-- Output: `verified_citations`, `failed_citations`, `overall_grounding_score` (0–100%), `hallucination_risk`, `recommendation`
-- LLM timeout: 120 seconds
-- Role: Cross-checks every claim against the retrieved evidence — the hallucination firewall
-
-**Agent 7: Critic** (`critic.py`)
-
-- Input: query + reasoning + audit + citation outputs
-- Output: `issues_found` (with severity), `missing_analysis`, `quality_score` (1–10), `overall_assessment` (PASS / PASS_WITH_REVISIONS / FAIL), `summary_feedback`
-- LLM timeout: 120 seconds
-- Role: Adversarial reviewer — finds what other agents missed
-
-#### Workflow Routing Logic
+`app/utils/cost_tracker.py` uses Python `contextvars.ContextVar` to maintain per-request token accumulators:
 
 ```python
-def route_after_critic(state: AgentState) -> str:
-    if overall_assessment == "FAIL" and iteration_count < max_iterations:
-        return "reasoning"  # Loop back: re-run reasoning → auditor → citation → critic
-    return "end"
+cost_tracker.reset()         # called before workflow.ainvoke()
+final_state = await workflow.ainvoke(...)
+usage = cost_tracker.get()   # reads accumulated tokens/cost for this invocation
 ```
 
-The critic can trigger at most `max_iterations` (default: 2) re-runs of the reasoning–auditor–citation cycle. This prevents infinite loops while allowing quality refinement.
+Each `chat()` call records its token usage via `cost_tracker.record(model, prompt_tokens, completion_tokens)`. Because each workflow runs in its own async task context, the ContextVar is naturally isolated — no global state, no race conditions between concurrent requests.
 
-### RAG Pipeline (8 Steps)
+### Agent Architecture
 
-The `RetrievalService.retrieve()` method implements a production-grade RAG pipeline:
+The platform uses **6 agents**, coordinated through LangGraph. Each agent is:
+- A Python async function that accepts input dicts, calls `chat()`, parses the JSON response, and returns a structured dict
+- Guided by a system prompt in `app/prompts/`
+- Decoupled from other agents — communicates only through `AgentState`
 
 ```
-Query Input
-    │
-    ▼ Step 1: Query Rewriting (LLM)
-    │   → Generates 2 legal rephrasings of the query
-    │   → Returns: [original_query, rephrasing_1, rephrasing_2]
-    │   → Fallback: original query only if LLM call fails
-    │
-    ▼ Step 2: Multi-Query Hybrid Search (per variant)
-    │   → Dense search: query text → BAAI/bge-base-en-v1.5 → 768-dim vector → Qdrant cosine
-    │   → Sparse search: query text → BM25 (fastembed) → sparse vector → Qdrant sparse index
-    │   → Runs for each of the 3 query variants
-    │   → Deduplication by source::section::page key
-    │
-    ▼ Step 3: Post-Retrieval Metadata Filter
-    │   → If multiple regulators identified, filter chunks to those regulators only
-    │   → Supports filtering by document_type (e.g., "Regulation" only)
-    │
-    ▼ Step 4: Cross-Encoder Reranking
-    │   → BAAI/bge-reranker-v2-m3 (2.27GB model, loaded once as singleton)
-    │   → Scores (query, chunk_text) pairs with cross-attention
-    │   → Reranks top_k × 2 candidates, keeps top_k × 2 for next step
-    │   → More accurate than cosine similarity alone
-    │
-    ▼ Step 5: Temporal / Freshness Scoring
-    │   → Documents < 180 days old: no penalty (multiplier = 1.0)
-    │   → Older documents: linear decay to 0.80 over 5 years
-    │   → Applies penalty to score; marks chunk as freshness_penalized=True
-    │
-    ▼ Step 6: MMR Diversity Filtering
-    │   → Maximal Marginal Relevance: prevents multiple chunks from same section
-    │   → Promotes cross-regulator diversity in results
-    │   → Returns top rerank_top_k diverse chunks
-    │
-    ▼ Step 7: Contextual Compression (LLM)
-    │   → For chunks > 300 chars: asks LLM to extract only sentences relevant to query
-    │   → Runs concurrently via asyncio.gather()
-    │   → Reduces noise in chunks passed to reasoning agent
-    │
-    ▼ Returns: list of enriched chunk dicts
+┌─────────────────────────────────────────────────────────────────────────┐
+│                            AGENT RESPONSIBILITIES                        │
+├─────────────────┬───────────────────────────────────────────────────────┤
+│ Orchestrator    │ Decomposes query; identifies target regulators;        │
+│                 │ produces task_breakdown and context_summary            │
+├─────────────────┼───────────────────────────────────────────────────────┤
+│ Jurisdiction    │ Identifies all applicable Nigerian regulators;         │
+│ Mapper          │ maps overlapping obligations; assigns confidence scores │
+├─────────────────┼───────────────────────────────────────────────────────┤
+│ Research Agent  │ NOT an LLM agent — runs the 7-step RAG pipeline;      │
+│                 │ retrieves top-k regulatory chunks from Qdrant          │
+├─────────────────┼───────────────────────────────────────────────────────┤
+│ Reasoning       │ Performs legal synthesis over retrieved chunks;        │
+│ Agent           │ produces obligations, prohibitions, permissions,       │
+│                 │ conflicts, and a reasoning summary                     │
+├─────────────────┼───────────────────────────────────────────────────────┤
+│ Compliance      │ Generates risk score (1-10) and risk level;           │
+│ Auditor         │ identifies compliance gaps; produces checklist;        │
+│                 │ identifies licensing requirements                      │
+├─────────────────┼───────────────────────────────────────────────────────┤
+│ Citation        │ Verifies every claim in reasoning + audit output       │
+│ Verifier        │ against retrieved chunks; scores grounding 0-100;     │
+│                 │ flags hallucination risk                               │
+├─────────────────┼───────────────────────────────────────────────────────┤
+│ Critic Agent    │ Adversarial review: challenges weak conclusions,       │
+│                 │ checks for missed regulators, inconsistencies;         │
+│                 │ scores quality 1-10; returns PASS / FAIL               │
+└─────────────────┴───────────────────────────────────────────────────────┘
 ```
 
-### Embedding Strategy
+### LangGraph Workflow State
 
-| Model                   | Type                          | Dimension | Use Case                                             |
-| ----------------------- | ----------------------------- | --------- | ---------------------------------------------------- |
-| `BAAI/bge-base-en-v1.5` | Dense (sentence-transformers) | 768       | Semantic similarity — understanding meaning          |
-| `Qdrant/bm25`           | Sparse (fastembed)            | Variable  | Keyword matching — exact terms like regulation names |
+`AgentState` is a `TypedDict(total=False)` — all fields are optional to allow partial state at any node:
 
-Both run locally on CPU — no GPU required, no external API calls for embedding.
+```python
+class AgentState(TypedDict, total=False):
+    # Input
+    query: str
+    session_id: str
+    organization_context: str | None
 
-**RRF Fusion**: Reciprocal Rank Fusion combines dense and sparse result rankings into a single merged list. Formula: `score(doc) = Σ 1 / (rank + k)` where k=60.
+    # Jurisdiction mapping output
+    target_regulators: list[str]
+    jurisdiction_result: dict
+
+    # Research agent output
+    retrieved_chunks: list[dict]
+
+    # Reasoning agent output
+    reasoning_result: dict
+
+    # Auditor agent output
+    audit_result: dict
+
+    # Citation verifier output
+    citation_result: dict
+
+    # Critic agent output
+    critic_result: dict
+
+    # Final assembled report
+    final_report: dict
+
+    # Loop control
+    iteration_count: int
+    max_iterations: int
+
+    # Workflow metadata
+    agent_trace: list[dict]
+```
+
+State is **immutable in transit** — each node returns `{**state, ...updated_fields}` using spread syntax. This ensures previous outputs are always available to downstream agents.
+
+### Workflow Graph
+
+```
+orchestrator_jurisdiction  (parallel: orchestrator + jurisdiction mapper)
+        │
+        ▼
+    research               (vector retrieval)
+        │
+        ▼
+    reasoning              (legal synthesis)
+        │
+        ▼
+     auditor               (risk + gap assessment)
+        │
+        ▼
+  citation_verifier        (grounding check)
+        │
+        ▼
+      critic               (quality review)
+        │
+        ├── overall_assessment == "FAIL" and iteration_count < 2
+        │         └──► back to reasoning
+        │
+        └── PASS / PASS_WITH_REVISIONS, or max iterations reached
+                  └──► END
+```
+
+The critic routing function (`route_after_critic`) enables up to 2 full reasoning loops — meaning in the worst case the reasoning → auditor → citation_verifier → critic pipeline runs twice. This adds ~40–60s to worst-case latency but improves quality of borderline outputs.
+
+### Parallel Execution
+
+The orchestrator and jurisdiction mapper run **in parallel** via `asyncio.gather()` in the `orchestrator_jurisdiction_node`. Both are LLM calls; their outputs are independent. This saves 8–12 seconds per request compared to sequential execution.
+
+### RAG Pipeline (7 Steps)
+
+Implemented in `app/services/retrieval_service.py`:
+
+```
+Step 1: Query normalisation
+        └── Single query variant used (LLM query expansion disabled for latency)
+
+Step 2: Hybrid search (dense + sparse per query)
+        ├── Dense: SentenceTransformers encode → Qdrant cosine search
+        └── Sparse: fastembed BM25 → Qdrant sparse vector search
+                ↓
+Step 3: RRF Fusion (Reciprocal Rank Fusion)
+        └── Merges dense and sparse result lists by rank position score
+
+Step 4: Post-retrieval deduplication
+        └── By {source}::{section}::{page} key
+
+Step 5: Regulator alias expansion + metadata filtering
+        └── "SEC Nigeria" → ["SEC Nigeria", "SEC"]
+        └── Filter applied at Qdrant query level (MatchAny) + post-filter safety net
+
+Step 6: Cross-encoder reranking
+        └── BAAI/bge-reranker-v2-m3 scores all (query, chunk) pairs
+        └── Returns top-8 by reranker score (not vector similarity)
+
+Step 7: Freshness scoring
+        └── Documents < 180 days: multiplier = 1.0 (no penalty)
+        └── Documents 5+ years old: multiplier = 0.80
+        └── Linear decay between
+
+Step 8: MMR diversity
+        └── Prevents multiple chunks from the same section
+        └── Promotes cross-regulator document diversity
+```
+
+### Chunking Strategy
+
+`app/utils/chunking.py` implements section-aware legal chunking:
+
+- Detects PART / CHAPTER / Section / Rule headers via regex
+- Maintains a **breadcrumb hierarchy** stack as it scans pages
+- Each section is emitted as one chunk with its full hierarchy preserved
+- Oversized sections (>4000 chars) are split with `RecursiveCharacterTextSplitter` and 400-char overlap
+- Each chunk carries: `document_name`, `page_number`, `section_number`, `section_title`, `hierarchy`, `chunk_index`, `metadata`
+
+This is critical for citation accuracy — downstream agents can cite specific sections and pages because the chunker preserved that structure.
+
+### Embedding Models
+
+| Model | Type | Dimensions | Use |
+|---|---|---|---|
+| `BAAI/bge-base-en-v1.5` | Dense, neural | 768 | Semantic similarity search |
+| `Qdrant/bm25` (fastembed) | Sparse, statistical | Variable | Keyword/term matching |
+| `BAAI/bge-reranker-v2-m3` | Cross-encoder | — | Post-retrieval reranking |
+
+Both retrieval models are loaded in-process (no external embedding API). The reranker is 2.27 GB and is loaded synchronously in a thread pool during startup.
 
 ### Prompt Engineering
 
-All system prompts are stored in `app/prompts/` as Python string constants. Key design principles:
+Each agent's system prompt is stored in `app/prompts/{agent}.py` as a constant string. Key design decisions:
 
-1. **Role clarity**: Each prompt starts with a precise role definition ("You are the Compliance Auditor Agent...")
-2. **Output format specification**: Every prompt specifies exact JSON output structure
-3. **Constraint enforcement**: Critical rules listed explicitly (e.g., "Every legal conclusion MUST cite a specific retrieved chunk")
-4. **Hallucination prevention**: Reasoning and citation prompts explicitly prohibit introducing information not in retrieved chunks
-5. **No redundancy**: Agents are given only what they need — orchestrator does not reason, reasoning agent does not audit
+- **Reasoning prompt** includes explicit rules: "never cite CAMA for financial compliance", "flag structural conflicts between business model and licence restrictions"
+- **Auditor prompt** includes "a checklist item is MET only if already implemented — intention does not count"
+- **Critic prompt** is explicitly adversarial: "your job is to find what other agents missed"
+- **Citation verifier** defines three states: VERIFIED, UNVERIFIED, CONTRADICTED — not just pass/fail
 
-### Hallucination Prevention Strategy
+All agents parse LLM output as JSON and have fallback dicts for when the model returns invalid JSON (e.g., includes markdown code fences).
 
-The system uses a **layered defense**:
+### Hallucination Prevention
 
-1. **Retrieval-grounded prompts**: Reasoning agent is explicitly told: "Never introduce regulatory knowledge not present in the retrieved chunks"
-2. **Citation Verifier**: Dedicated agent cross-checks every claim against chunk evidence, produces `hallucination_risk` score and `overall_grounding_score`
-3. **Critic adversarial review**: Checks "Claims made with HIGH confidence that have MEDIUM or LOW citation grounding"
-4. **Stored evidence**: All retrieved chunks are persisted in the audit record, making post-hoc verification possible
+Multiple layers:
+
+1. **Retrieval-first**: no reasoning happens without retrieved chunks
+2. **Citation verifier**: explicitly checks whether each claim appears in the retrieved evidence
+3. **Grounding score**: 0–100 percentage of verified citations
+4. **Critic agent**: flags claims with HIGH confidence but LOW grounding
+5. **Reasoning prompt rule**: "If the retrieved context is insufficient, state: 'Insufficient regulatory basis to conclude on [topic]'"
+6. **Regulator attribution rules**: specific prompt rules prevent SEC documents being attributed to CBN, or CAMA being cited for financial compliance
 
 ---
 
 ## 9. API Documentation
 
-### Base URL
-
-```
-http://localhost:8000
-```
-
----
-
 ### GET /health
 
-**Purpose**: Service liveness check.
+**Purpose**: Health check for monitoring and liveness probes.
 
-**Response**:
-
+**Response:**
 ```json
-{ "status": "ok" }
+{
+  "status": "ok",
+  "version": "0.1.0",
+  "services": {
+    "postgres": "connected",
+    "qdrant": "connected"
+  }
+}
 ```
+
+**Auth**: None required.
 
 ---
 
 ### POST /regulations/upload
 
-**Purpose**: Ingest a regulatory PDF document into the knowledge base.
+**Purpose**: Upload a regulatory PDF for ingestion into the vector store.
 
 **Request**: `multipart/form-data`
 
-| Field           | Type       | Required | Description                                               |
-| --------------- | ---------- | -------- | --------------------------------------------------------- |
-| `file`          | File (PDF) | Yes      | The regulation PDF                                        |
-| `regulator`     | string     | Yes      | e.g., `CBN`, `SEC`, `NDIC`, `FIRS`                        |
-| `document_type` | string     | Yes      | e.g., `Regulation`, `Circular`, `Act`, `Guideline`        |
-| `issued_date`   | string     | No       | ISO date, e.g., `2024-03-15` — used for freshness scoring |
-| `notes`         | string     | No       | Optional operator notes                                   |
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `file` | `UploadFile` | Yes | Must be `application/pdf` |
+| `regulator` | `string` | Yes | e.g. "CBN", "SEC Nigeria" |
+| `document_type` | `string` | Yes | e.g. "Regulation", "Act", "Circular" |
+| `issued_date` | `string` | No | ISO date, e.g. "2024-03-15" |
+| `notes` | `string` | No | Free text |
 
-**Example**:
+**Responses:**
 
-```bash
-curl -X POST http://localhost:8000/regulations/upload \
-  -F "file=@CBN_Consumer_Protection.pdf" \
-  -F "regulator=CBN" \
-  -F "document_type=Regulation" \
-  -F "issued_date=2019-12-20"
-```
+| Code | Meaning |
+|---|---|
+| `201` | Ingested successfully |
+| `400` | Non-PDF file |
+| `409` | Duplicate document (same SHA256 hash) |
+| `422` | PDF parsed but zero text extracted |
 
-**Success Response** (HTTP 201):
-
-```json
-{
-  "message": "Document ingested successfully",
-  "file_name": "CBN_Consumer_Protection.pdf",
-  "regulator": "CBN",
-  "document_type": "Regulation",
-  "total_pages": 45,
-  "chunks_ingested": 19
-}
-```
-
-**Error Responses**:
-
-- `400`: Non-PDF file uploaded
-- `409`: Document with identical content already ingested
-- `422`: Missing required fields
-- `500`: Parse error or embedding failure
-
-**Internal Flow**:
-
-1. Validate `content_type == "application/pdf"`
-2. Compute SHA-256 hash; reject if already in `documents` table
-3. Write to temp file (parsers need file path)
-4. `IngestionService.ingest()` → parse → chunk → embed (dense + sparse) → upsert to Qdrant
-5. `DocumentRepository.save()` → write to PostgreSQL
-6. Delete temp file
+**Internal flow**: Validates → SHA256 check → write to tempfile → parse (PyMuPDF + pdfplumber + OCR) → chunk → embed (dense + sparse) → upsert to Qdrant → save `DocumentRecord` to PostgreSQL → delete tempfile.
 
 ---
 
-### POST /analysis/analyze-business
+### GET /regulations/
 
-**Purpose**: The core endpoint. Submits a compliance/regulatory question and receives a structured analysis report.
+**Purpose**: List all indexed regulatory documents.
 
-**Request**: `application/json`
+**Response**: Array of document objects with `id`, `file_name`, `regulator`, `document_type`, `total_pages`, `chunks_ingested`, `ingested_at`.
 
-| Field                  | Type          | Required | Description                                                    |
-| ---------------------- | ------------- | -------- | -------------------------------------------------------------- |
-| `query`                | string        | Yes      | The regulatory question or business description                |
-| `session_id`           | string (UUID) | No       | Link this analysis to an existing session; generated if absent |
-| `organization_context` | string        | No       | Business description to give agents context                    |
+---
 
-**Example**:
+### DELETE /regulations/{doc_id}
 
-```bash
-curl -X POST http://localhost:8000/analysis/analyze-business \
-  -H "Content-Type: application/json" \
-  -d '{
-    "query": "What CBN obligations apply to a mobile wallet offering micro-investments?",
-    "organization_context": "Fintech startup targeting retail customers",
-    "session_id": "550e8400-e29b-41d4-a716-446655440000"
-  }'
-```
+**Purpose**: Remove a document from the registry.
 
-**Success Response** (HTTP 200):
+**Note**: This removes the PostgreSQL record. Qdrant vectors are not automatically deleted (known limitation).
 
+---
+
+### POST /analyze/analyze-business
+
+**Purpose**: Submit a business model description for full compliance analysis.
+
+**Request body (BusinessAnalysisRequest):**
 ```json
 {
-  "audit_id": "a040e06d-ec99-4f6f-8ee0-3540463adeb0",
-  "session_id": "550e8400-e29b-41d4-a716-446655440000",
-  "query": "What CBN obligations apply to a mobile wallet offering micro-investments?",
-  "final_report": {
-    "query": "...",
-    "executive_summary": "...",
-    "obligations": [
-      {"description": "...", "citation": "CBN Consumer Protection Regulations, Part Four", "regulator": "CBN"}
-    ],
-    "prohibitions": [...],
-    "permissions": [...],
-    "conflicts": [...],
-    "compliance_gaps": [...],
-    "compliance_checklist": [
-      {"requirement": "...", "status": "UNMET", "citation": "...", "notes": "..."}
-    ],
-    "licensing_requirements": [...],
-    "recommendations": [...],
-    "risk_score": 7,
-    "risk_level": "HIGH",
-    "citations": [
-      {
-        "citation_string": "CBN | CBN Consumer Protection Regulations.pdf | PART FOUR | Page 22",
-        "document": "CBN Consumer Protection Regulations.pdf",
-        "section": "PART FOUR",
-        "page": 22,
-        "regulator": "CBN",
-        "text_excerpt": "..."
-      }
-    ]
-  },
-  "agent_trace": [
-    {"agent": "orchestrator", "status": "completed"},
-    {"agent": "jurisdiction_mapper", "status": "completed"},
-    {"agent": "researcher", "status": "completed"},
-    {"agent": "reasoning", "status": "completed"},
-    {"agent": "auditor", "status": "completed"},
-    {"agent": "citation_verifier", "status": "completed"},
-    {"agent": "critic", "status": "completed"}
-  ],
-  "duration_ms": 106474
+  "business_description": "We are a digital lending startup...",
+  "business_sector": "Fintech",
+  "target_regulators": ["CBN", "FIRS"],
+  "organization_context": "Early-stage, not yet licensed",
+  "session_id": "550e8400-e29b-41d4-a716-446655440000"
 }
 ```
 
-**Error Responses**:
+| Field | Required | Notes |
+|---|---|---|
+| `business_description` | Yes | 20–5000 chars |
+| `business_sector` | No | Prepended to query as context |
+| `target_regulators` | No | Restricts Qdrant metadata filter |
+| `organization_context` | No | Passed to orchestrator + reasoning agents |
+| `session_id` | No | Groups audit records; generated if not provided |
 
-- `422`: Missing `query` field
-- `500`: Workflow execution error (wrapped with detail message)
+**Response (AnalysisInitiatedResponse):**
+```json
+{
+  "report_id": "uuid",
+  "workflow_status": "pending",
+  "message": "Analysis initiated. Poll /analyze/report/{report_id} for results."
+}
+```
 
-**Typical Latency**: 90–120 seconds (OpenAI gpt-4o-mini, 20 indexed chunks, reranker cached)
+HTTP 200 is returned immediately. The workflow runs in the background.
+
+---
+
+### POST /analyze/compliance-gap
+
+**Purpose**: Identify compliance gaps between a business and applicable regulations.
+
+**Request body (ComplianceGapRequest):**
+```json
+{
+  "business_description": "We are a payment gateway with CBN PSSP approval...",
+  "target_regulators": ["CBN", "NDPA"],
+  "session_id": "uuid"
+}
+```
+
+Internally wraps the description in a gap-analysis prefix query and calls the same compliance workflow. Same poll pattern as above.
+
+---
+
+### GET /analyze/report/{report_id}
+
+**Purpose**: Retrieve the status and result of a submitted workflow.
+
+**Response (ReportStatusResponse):**
+```json
+{
+  "report_id": "uuid",
+  "status": "completed",
+  "audit_id": "uuid",
+  "session_id": "uuid",
+  "report": {
+    "query": "...",
+    "executive_summary": "...",
+    "applicable_regulators": ["CBN", "SEC Nigeria"],
+    "obligations": [],
+    "prohibitions": [],
+    "permissions": [],
+    "conflicts": [],
+    "compliance_gaps": [],
+    "compliance_checklist": [],
+    "licensing_requirements": [],
+    "recommendations": [],
+    "risk_score": 7,
+    "risk_level": "HIGH",
+    "citations": []
+  },
+  "llm_metrics": {
+    "llm_calls": 6,
+    "prompt_tokens": 22000,
+    "completion_tokens": 6000,
+    "total_tokens": 28000,
+    "cost_usd": 0.006,
+    "model": "gpt-4o-mini"
+  },
+  "grounding_score": 85,
+  "hallucination_risk": "LOW",
+  "iteration_count": 1,
+  "agent_trace": []
+}
+```
+
+**Status values**: `running` | `completed` | `failed`
+
+404 if `report_id` was not found in the in-memory store (process restart clears it).
+
+---
+
+### GET /analyze/report/{report_id}/stream
+
+**Purpose**: Server-Sent Events (SSE) stream of real-time agent progress.
+
+Sends one `data: {...}` event per completed agent step. Clients that prefer SSE over polling can use this endpoint. Closes when workflow completes or fails.
 
 ---
 
 ### GET /audit/trace/{audit_id}
 
-**Purpose**: Retrieve the complete, immutable audit trace for a workflow run.
+**Purpose**: Retrieve the complete agent execution trace for a compliance report.
 
-**Path parameter**: `audit_id` — UUID returned by `/analyze-business`
-
-**Example**:
-
-```bash
-curl http://localhost:8000/audit/trace/a040e06d-ec99-4f6f-8ee0-3540463adeb0
-```
-
-**Success Response** (HTTP 200): Full audit record including all agent outputs, citations, trace, risk level, grounding score, and iteration count.
-
-**Error Responses**:
-
-- `404`: Audit ID not found
+Returns the full `AuditRecord` including all agent outputs in JSON. Supports explainability and forensic review.
 
 ---
 
 ### GET /audit/session/{session_id}
 
-**Purpose**: List all audit records for a session, newest first.
+**Purpose**: List all audit traces for a given session (newest first).
 
-**Query parameter**: `limit` (default: 20)
-
-**Example**:
-
-```bash
-curl "http://localhost:8000/audit/session/550e8400-e29b-41d4-a716-446655440000?limit=5"
-```
-
-**Success Response** (HTTP 200): Array of summary audit records (without full agent outputs).
+Supports `?limit=20` query parameter. Returns summary objects (not full agent outputs).
 
 ---
 
 ## 10. DevOps & Infrastructure
 
-### Infrastructure Overview
+### Infrastructure Components
 
-```
-┌─────────────────────────────────────────────────┐
-│              Docker Compose (Local)              │
-│                                                  │
-│  ┌───────────┐  ┌─────────────┐  ┌───────────┐  │
-│  │  Qdrant   │  │  PostgreSQL │  │   Redis   │  │
-│  │ :6333     │  │  :5432      │  │  :6379    │  │
-│  │ :6334(RPC)│  │             │  │           │  │
-│  └───────────┘  └─────────────┘  └───────────┘  │
-└─────────────────────────────────────────────────┘
+| Service | Image | Port | Data Persistence |
+|---|---|---|---|
+| PostgreSQL | `postgres:16-alpine` | 5432 | `postgres_data` named volume |
+| Qdrant | `qdrant/qdrant:latest` | 6333 (REST), 6334 (gRPC) | `qdrant_data` named volume |
+| Redis | `redis:7-alpine` | 6379 | `redis_data` named volume |
 
-FastAPI Application (uvicorn, host process — not containerized in MVP)
-├── port: 8000
-├── --reload flag for development
-└── Connects to Docker containers via localhost ports
-```
-
-### Docker Compose Services
-
-**Qdrant**
-
-- Image: `qdrant/qdrant:latest`
-- Ports: `6333` (REST API), `6334` (gRPC)
-- Volume: `qdrant_data:/qdrant/storage` (persistent)
-- Restart: `unless-stopped`
-
-**PostgreSQL**
-
-- Image: `postgres:16-alpine`
-- Port: `5432`
-- Credentials: from `.env` (`POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`)
-- Volume: `postgres_data:/var/lib/postgresql/data` (persistent)
-- Restart: `unless-stopped`
-
-**Redis**
-
-- Image: `redis:7-alpine`
-- Port: `6379`
-- Persistence: `appendonly yes` (AOF persistence enabled)
-- Volume: `redis_data:/data`
-- Restart: `unless-stopped`
+All three services are defined in `docker-compose.yml` and managed as a local stack.
 
 ### Starting Infrastructure
 
 ```bash
-# Start all Docker services
 docker compose up -d
-
-# Start the FastAPI application
-uvicorn app.main:app --reload
-
-# Verify services
-curl http://localhost:8000/health
-curl http://localhost:6333/healthz
 ```
 
-### Package Management
+All data is persisted in Docker named volumes — stopping and restarting containers does not lose indexed documents or audit records.
 
-Uses `uv` — a fast Python package manager. `pyproject.toml` defines dependencies.
+### Starting the Application
 
 ```bash
-uv sync          # Install all dependencies
-uv add <pkg>     # Add new dependency
+# Activate virtual environment
+source .venv/bin/activate
+
+# Start FastAPI backend (do NOT use --reload — it creates duplicate lifespan events)
+uvicorn app.main:app --port 8000
+
+# In a second terminal — start the Chainlit UI
+chainlit run chainlit_app.py --port 8080
 ```
 
-### Environment Variables
+### Dependency Management
 
-All environment variables defined in `.env` (not committed to version control):
+The project uses `uv` (Astral) as the package manager. `pyproject.toml` lists all dependencies; `uv.lock` pins exact versions.
 
 ```bash
-POSTGRES_USER=regplatform
-POSTGRES_PASSWORD=<secret>
-POSTGRES_DB=regulatory_db
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5432
-
-QDRANT_HOST=localhost
-QDRANT_PORT=6333
-
-OPENAI_API_KEY=sk-proj-...
-LLM_PROVIDER=openai
-OPENAI_MODEL=gpt-4o-mini
+uv sync           # install all dependencies
+uv add <package>  # add a new dependency
 ```
+
+### Python Runtime
+
+Python 3.12+ is required (uses `str | None` union syntax, `match`/`case`, improved asyncio). Version is pinned in `.python-version`.
+
+### Secrets Management
+
+All secrets are stored in `.env` in the project root (gitignored). `.env.example` is committed with placeholder values.
+
+**Never commit `.env` to git.**
+
+Production deployments should use environment variable injection via the hosting platform or a secrets manager (AWS Secrets Manager, GCP Secret Manager, Doppler, etc.).
 
 ### CI/CD
 
-Not yet configured. Recommended future setup:
+No CI/CD pipeline is currently configured. When implementing:
 
-- GitHub Actions for lint (ruff), type check (mypy), test (pytest) on PR
-- Docker image build for FastAPI application
-- Automated deployment to cloud on merge to main
+1. GitHub Actions is the natural choice (repository is already on GitHub)
+2. Suggested workflow: `pytest` → `ruff` linting → `docker build` → push to registry → deploy
+
+### Scaling Considerations
+
+**Current (single process):**
+- One uvicorn worker handles all requests
+- `_reports` dict is in-process memory → lost on restart
+- Heavy models (reranker, embedder) loaded once per process
+
+**Horizontal scaling path:**
+- Replace `_reports` dict with Redis
+- Use `uvicorn --workers N` or `gunicorn` with uvicorn workers
+- Reranker and embedder can be moved to a dedicated embedding service
+- Qdrant and PostgreSQL are already external — scale independently
 
 ---
 
 ## 11. Security Analysis
 
-### Current State (MVP)
+### Authentication & Authorization
 
-**Authentication**: None implemented. All API endpoints are open.
-**Authorization**: None implemented. Any caller can access any audit record.
+**Current state**: Optional Bearer token auth is scaffolded but token verification is not implemented. All routes accept unauthenticated requests.
 
-This is acceptable for an internal MVP/demo but must be addressed before any external or production deployment.
+**Planned**: JWT-based auth via `python-jose`. The `get_current_user` dependency is ready to be wired to a users table once implemented.
 
-### Implemented Security Controls
+**Risk**: In the current state, any user with network access can upload documents, trigger analysis workflows, and read audit records. This is acceptable for a local MVP but must be locked down before any public deployment.
 
-| Control                      | Implementation                                                                    |
-| ---------------------------- | --------------------------------------------------------------------------------- |
-| **Input validation**         | Pydantic models on all request bodies; FastAPI returns 422 for type violations    |
-| **File type validation**     | MIME type check on uploads (`application/pdf` only)                               |
-| **Content deduplication**    | SHA-256 hash prevents re-ingestion of identical files                             |
-| **SQL injection prevention** | SQLAlchemy ORM with parameterized queries — no raw SQL                            |
-| **Secrets management**       | API keys in `.env`, loaded via pydantic-settings — not hardcoded                  |
-| **LLM output sanitization**  | JSON parsing with `try/except` — malformed LLM responses never crash the workflow |
-| **Async session isolation**  | Each request gets its own `AsyncSession`; auto-rollback on exception              |
+### Input Validation
 
-### OWASP Top 10 Analysis
+- All request bodies are Pydantic models with field-level constraints (`min_length`, `max_length`)
+- File upload validates `content_type == "application/pdf"` before processing
+- All UUIDs in route parameters are validated via `uuid.UUID()` — invalid UUIDs return `404` / graceful `None` rather than propagating
+- SQL queries use SQLAlchemy parameterised expressions — no raw string concatenation → no SQL injection risk
 
-| Risk                          | Status               | Notes                                                               |
-| ----------------------------- | -------------------- | ------------------------------------------------------------------- |
-| A01 Broken Access Control     | ⚠️ **Not addressed** | No auth on any endpoint                                             |
-| A02 Cryptographic Failures    | ✅ Partial           | Secrets in `.env`; HTTPS not configured (no TLS in dev)             |
-| A03 Injection                 | ✅ Mitigated         | ORM parameterized queries; Pydantic validation                      |
-| A04 Insecure Design           | ✅ Partial           | Clean separation of concerns; no business logic in routes           |
-| A05 Security Misconfiguration | ⚠️ **Risk**          | `echo=False` in SQLAlchemy (good); no CORS config; no rate limiting |
-| A06 Vulnerable Components     | ✅ Active            | Modern pinned dependencies via uv/pyproject.toml                    |
-| A07 Auth Failures             | ⚠️ **Not addressed** | No authentication at all                                            |
-| A09 Logging Failures          | ✅ Good              | Structured logging at INFO level; sensitive data not logged         |
-| A10 SSRF                      | ✅ Mitigated         | LLM URL configurable but from env only; no user-supplied URLs       |
+### Content Deduplication
 
-### Security Roadmap (Required Before Production)
+SHA256 hashing of uploaded files prevents the same document being ingested twice. This is both a storage optimisation and a data integrity measure.
 
-1. JWT Bearer token authentication on all endpoints
-2. Role-based access control (RBAC) — admin, analyst, read-only
-3. Rate limiting on `/analyze-business` (LLM calls are expensive)
-4. CORS configuration
-5. HTTPS/TLS termination (nginx reverse proxy or load balancer)
-6. Secrets rotation strategy (not hardcoded keys)
-7. Audit log for authentication events
+### LLM Prompt Security
+
+All agent system prompts are static string constants loaded at import time — they cannot be modified by user input. User queries are passed only in the `user` role messages, never in system prompts. This prevents prompt injection via the query field.
+
+### Sensitive Data Handling
+
+- API keys are loaded from environment variables, never hardcoded
+- Database credentials are in `.env` (gitignored)
+- The `.gitignore` excludes `.env`, `*.log`, `test_results*.txt`, `data/raw/`, `.venv/`
+- No PII is collected or stored beyond the user's query text and organization context
+
+### OWASP Top 10 Considerations
+
+| Risk | Mitigation |
+|---|---|
+| A01 Broken Access Control | Currently no access control (MVP only). Auth scaffolded for future. |
+| A02 Cryptographic Failures | API keys in env vars. No sensitive data encrypted at rest (planned for production). |
+| A03 Injection | Pydantic validation + SQLAlchemy parameterised queries. LLM prompts are static. |
+| A04 Insecure Design | Clean architecture with separation of concerns. No business logic in routes. |
+| A05 Security Misconfiguration | CORS restricted to specific origins. Debug mode off in production. |
+| A06 Vulnerable Components | `uv.lock` pins all dependency versions. No known CVEs in current deps. |
+| A07 Auth/Identification Failures | Not fully implemented — highest priority security gap for production. |
+| A08 Software Integrity | No dependency confusion risks — all packages from PyPI. `uv.lock` ensures reproducibility. |
+| A09 Logging Failures | Structured logging via Python logging module. No sensitive data in logs. |
+| A10 SSRF | httpx is used for OpenAI/Ollama calls with explicit URLs from settings — no user-controlled URLs. |
 
 ---
 
@@ -1044,60 +1143,49 @@ This is acceptable for an internal MVP/demo but must be addressed before any ext
 
 ### Logging
 
-Structured logging is configured at startup in `app/main.py`:
+The application uses Python's standard `logging` module throughout. The `app` logger namespace is configured in `main.py` with a `StreamHandler` that bypasses uvicorn's root handler to prevent duplicate log lines.
 
-```python
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    datefmt="%H:%M:%S",
-)
-```
+**Log format**: `HH:MM:SS [LEVEL] module.name: message`
 
-**Log prefixes** make log filtering easy:
+Each major operation is logged with a recognisable prefix:
 
-| Prefix           | Source                      | What It Logs                          |
-| ---------------- | --------------------------- | ------------------------------------- |
-| `[ORCHESTRATOR]` | orchestrator.py             | Query decomposition, LLM calls        |
-| `[JURISDICTION]` | jurisdiction_mapper.py      | Regulator mapping, LLM calls          |
-| `[RESEARCH]`     | nodes.py                    | Chunk retrieval count, query variants |
-| `[RETRIEVAL]`    | retrieval_service.py        | Query variants, expansion failures    |
-| `[RERANKER]`     | reranking.py                | Failures, fallback to original order  |
-| `[REASONING]`    | reasoning.py                | Chunk synthesis, LLM calls            |
-| `[AUDITOR]`      | auditor.py                  | Risk assessment calls                 |
-| `[CITATION]`     | citation_verifier.py        | Claim verification                    |
-| `[CRITIC]`       | critic.py                   | Quality assessment                    |
-| `[COMPLIANCE]`   | compliance_service.py       | Workflow duration, iteration count    |
-| `[AUDIT]`        | audit_service.py            | Record persistence with ID            |
-| `[INGEST]`       | ingestion_service.py        | Parse/chunk/embed progress            |
-| `[QDRANT]`       | qdrant.py                   | Collection creation/validation        |
-| `[SPARSE]`       | sparse_embedding_service.py | BM25 model loading                    |
-| `[LLM]`          | llm_client.py               | Provider + model used (DEBUG level)   |
+| Prefix | Component |
+|---|---|
+| `[INGEST]` | IngestionService |
+| `[PARSE]` | PDF parser |
+| `[CHUNK]` | Chunker |
+| `[EMBED]` | EmbeddingService |
+| `[SPARSE]` | SparseEmbeddingService |
+| `[STORE]` | VectorRepository |
+| `[RETRIEVAL]` | RetrievalService |
+| `[LLM]` | llm_client |
+| `[ORCHESTRATOR]` | Orchestrator agent |
+| `[JURISDICTION]` | Jurisdiction mapper |
+| `[REASONING]` | Reasoning agent |
+| `[AUDITOR]` | Compliance auditor |
+| `[CITATION]` | Citation verifier |
+| `[CRITIC]` | Critic agent |
+| `[COMPLIANCE]` | ComplianceService |
+| `[AUDIT]` | AuditService |
+| `[QDRANT]` | Qdrant client |
 
-### Metrics Available in Audit Records
+**Timing**: Every agent node logs `done in X.Xs` with key output metrics (e.g., number of chunks, regulator list, risk score).
 
-Every workflow run produces the following observable metrics stored in PostgreSQL:
+### Health Checks
 
-- `duration_ms` — total end-to-end latency
-- `iteration_count` — number of critic loops triggered
-- `overall_risk_level` — CRITICAL / HIGH / MEDIUM / LOW
-- `hallucination_risk` — NONE / LOW / MEDIUM / HIGH
-- `grounding_score` — % of claims verified (0–100)
-- `status` — COMPLETED / (future: FAILED, TIMEOUT)
+`GET /health` actively tests PostgreSQL (via `SELECT 1`) and Qdrant (via `collection_exists()`) and returns their connection status. Suitable for liveness/readiness probes.
 
-### Health Check
+### Metrics
 
-```bash
-GET /health  →  {"status": "ok"}
-```
+No Prometheus / Grafana / Datadog integration currently. LLM metrics (token counts, cost, call count, model name) are returned in every completed report via the `llm_metrics` field and stored in the `AuditRecord`. Duration in milliseconds is also stored per record.
 
-### Missing Observability (Gaps)
+### Audit Trail
 
-- No distributed tracing (OpenTelemetry not configured)
-- No metrics exporter (Prometheus not configured)
-- No error alerting (Sentry/Datadog not integrated)
-- No structured log aggregation (ELK/Datadog not configured)
-- No LLM cost tracking per request
+Every completed analysis is persisted to PostgreSQL with the full workflow state — including every agent's complete output JSON, the citations used, the risk score, grounding score, and iteration count. This provides a post-hoc audit capability without needing distributed tracing.
+
+### Error Tracking
+
+Exceptions in background tasks are caught and stored in `_reports[report_id]["error"]`. The Chainlit UI surfaces these as analysis failed messages. No external error tracking service (Sentry, etc.) is currently configured.
 
 ---
 
@@ -1105,328 +1193,255 @@ GET /health  →  {"status": "ok"}
 
 ### Scenario
 
-> A compliance officer at a digital bank submits: "What complaint resolution timelines must we follow under CBN regulations?"
+User query: "We are launching a mobile app that lets users invest in Nigerian Treasury Bills, earn interest, and send money to other users. We plan to hold customer funds in a pooled account."
 
 ### Step-by-Step Trace
 
-**Step 1 — HTTP Request received**
+#### 1. User Interaction (Chainlit)
 
-```
-POST /analysis/analyze-business
-{
-  "query": "What complaint resolution timelines must we follow under CBN regulations?",
-  "organization_context": "Digital bank with retail customers"
-}
-```
+- User has clicked "Analyze Business Model" — `cl.user_session["mode"] = "analyze"`
+- User types the query and presses Enter
+- `on_message()` fires, validates query length >= 20 chars
+- `console_session_id = cl.user_session["console_session_id"]` (e.g. `"abc-123-..."`)
+- Calls `_run_analysis("/analyze/analyze-business", {"business_description": "...", "session_id": "abc-123-..."}, "analyze", "abc-123-...")`
 
-FastAPI validates the request body via `AnalysisRequest` Pydantic model. A new `session_id` UUID is generated (none provided). `ComplianceService(db).analyze()` is called.
+#### 2. Submit to FastAPI (POST /analyze/analyze-business)
 
----
+- httpx POSTs to `http://localhost:8000/analyze/analyze-business`
+- FastAPI receives, Pydantic validates `BusinessAnalysisRequest`
+- `report_id = str(uuid.uuid4())` — e.g. `"f4e3d2c1-..."`
+- Background task `_run_workflow(report_id, query, db, session_id="abc-123-...")` is scheduled
+- HTTP 200 returned immediately: `{"report_id": "f4e3d2c1-...", "workflow_status": "pending", ...}`
 
-**Step 2 — LangGraph workflow starts**
+#### 3. UI Starts Polling
 
-`workflow.ainvoke(initial_state)` is called with:
+- Chainlit receives `report_id`
+- Opens `cl.Step("Multi-Agent Workflow")`
+- Every 3 seconds: `GET /analyze/report/f4e3d2c1-...`
+- While running: updates step with elapsed time
 
+#### 4. Background Workflow Executes
+
+**A. ComplianceService initialises state:**
 ```python
-{
-    "query": "What complaint resolution timelines...",
+initial_state = {
+    "query": "[Sector: Fintech] We are launching a mobile app...",
     "session_id": "abc-123-...",
-    "organization_context": "Digital bank with retail customers",
+    "organization_context": None,
     "iteration_count": 0,
     "max_iterations": 2,
-    "agent_trace": []
+    "agent_trace": [],
 }
+cost_tracker.reset()
 ```
 
----
+**B. Node 1: orchestrator_jurisdiction_node (parallel execution)**
 
-**Step 3 — Orchestrator Node**
+- `asyncio.gather(run_orchestrator(...), run_jurisdiction_mapping(...))`
+- Orchestrator LLM call returns: `{task_breakdown: [...], target_regulators: ["CBN", "SEC Nigeria", "NDIC"], context_summary: "...", query_type: "LICENSING"}`
+- Jurisdiction mapper LLM call (simultaneously) returns: `{applicable_regulators: [{regulator: "CBN", ...}, {regulator: "SEC Nigeria", ...}, {regulator: "NDIC", ...}], primary_regulator: "CBN"}`
+- State gains: `target_regulators`, `jurisdiction_result`, updated `agent_trace`
 
-`run_orchestrator()` calls OpenAI gpt-4o-mini with `ORCHESTRATOR_SYSTEM_PROMPT` + the query.
+**C. Node 2: research_node**
 
-LLM returns:
+- `RetrievalService.retrieve(query="...", filter_regulators=["CBN", "SEC Nigeria", "NDIC"])`
+- Regulator aliases expanded: "SEC Nigeria" → ["SEC Nigeria", "SEC"]
+- Dense embedding generated via `BAAI/bge-base-en-v1.5`
+- BM25 sparse embedding generated via `Qdrant/bm25`
+- Parallel dense + sparse search in Qdrant with `MatchAny` filter on regulator field
+- RRF fusion merges result lists
+- Deduplication by `source::section::page` key
+- Cross-encoder reranks top 16 → keeps top 8
+- Freshness multiplier applied
+- MMR diversity applied
+- Returns ~8 chunks from BOFIA 2020, CBN PSB Guidelines, ISA 2025, CBN Consumer Protection Regulations
 
-```json
-{
-  "task_breakdown": [
-    "identify complaint handling regulations",
-    "retrieve CBN consumer protection rules",
-    "analyse resolution timelines"
-  ],
-  "target_regulators": ["CBN"],
-  "context_summary": "Query about consumer complaint resolution obligations for a digital bank under CBN supervision.",
-  "query_type": "OBLIGATION_ANALYSIS"
-}
-```
+**D. Node 3: reasoning_node**
 
-State updated: `target_regulators=["CBN"]`, `agent_trace=[{agent: "orchestrator", status: "completed"}]`
+- LLM receives chunks formatted as: `[CBN | BOFIA-2020.pdf | Section 9 | Page 14]\n{text}`
+- Returns obligations, prohibitions, conflicts, reasoning_summary
 
----
+**E. Node 4: auditor_node**
 
-**Step 4 — Jurisdiction Node**
+- Returns: risk_score: 8, risk_level: "HIGH", compliance_gaps: 5 items, compliance_checklist: 9 items, licensing_requirements
 
-`run_jurisdiction_mapping()` calls LLM. Returns:
+**F. Node 5: citation_node**
 
-```json
-{
-  "applicable_regulators": [
-    {
-      "regulator": "CBN",
-      "rationale": "CBN Consumer Protection Regulations govern complaint handling for licensed financial institutions"
-    }
-  ],
-  "primary_regulator": "CBN",
-  "overlap_risks": []
-}
-```
+- Returns: overall_grounding_score: 82, hallucination_risk: "LOW", recommendation: "APPROVE"
 
----
+**G. Node 6: critic_node**
 
-**Step 5 — Research Node**
+- Returns: overall_assessment: "PASS_WITH_REVISIONS", quality_score: 7
+- `route_after_critic`: PASS_WITH_REVISIONS → END (not FAIL → no loop back)
 
-`RetrievalService.retrieve(query, filter_regulators=["CBN"])` executes the 8-step pipeline:
+**H. AuditService persists record**
 
-1. LLM generates 2 legal rephrasings:
-   - "mandated timelines for consumer complaint resolution under CBN guidelines"
-   - "financial institution obligations for dispute resolution pursuant to CBN Consumer Protection Regulations"
+- New `AuditRecord` row written to PostgreSQL with full JSON state
 
-2. For each of the 3 queries → dense embed → BM25 sparse embed → Qdrant hybrid search
-   - Retrieves chunks about: Part Five (Complaints Handling), Annexure D (resolution timelines), Part Six (sanctions for non-resolution)
+**I. ComplianceService assembles final response**
 
-3. Deduplication → cross-encoder reranking → freshness scoring → MMR diversity → contextual compression
+- `_reports["f4e3d2c1-..."] = {"status": "completed", "report": result}`
 
-Returns 6 highly relevant chunks specifically about complaint procedures.
+#### 5. UI Receives Completed Report
 
----
+- Next poll returns `status: "completed"`
+- Chainlit closes workflow step
+- Renders individual agent steps from `agent_trace`
+- Renders Sources Retrieved with 8 citation documents
+- Renders Workflow Metrics: 6 LLM calls, ~28,000 tokens, $0.006
+- Renders full compliance report card
+- Displays follow-up action buttons
 
-**Step 6 — Reasoning Node**
-
-`run_reasoning()` sends all 6 chunks to LLM with `REASONING_SYSTEM_PROMPT`.
-
-LLM synthesises:
-
-```json
-{
-  "obligations": [
-    {
-      "description": "Institutions must resolve declined transaction complaints within 3 working days",
-      "citation": "CBN Consumer Protection Regulations, Part Six, Annexure D, Page 39",
-      "regulator": "CBN"
-    }
-  ],
-  "prohibitions": [...],
-  "conflicts": [],
-  "reasoning_summary": "The CBN Consumer Protection Regulations impose specific complaint resolution timelines...",
-  "confidence": "HIGH"
-}
-```
-
----
-
-**Step 7 — Auditor Node**
-
-`run_audit()` receives the reasoning output and produces a compliance checklist:
-
-```json
-{
-  "risk_score": 4,
-  "risk_level": "MEDIUM",
-  "compliance_checklist": [
-    {
-      "requirement": "Complaint tracking system",
-      "status": "UNKNOWN",
-      "citation": "Part Five, 6.1"
-    },
-    {
-      "requirement": "Summary Resolution Communication (SRC)",
-      "status": "UNKNOWN",
-      "citation": "Part Five, 6.3.11"
-    }
-  ],
-  "licensing_requirements": [],
-  "recommendations": [
-    "Implement a complaint management system with SLA tracking",
-    "Send SRC for all resolved complaints"
-  ]
-}
-```
-
----
-
-**Step 8 — Citation Verifier**
-
-Checks every claim in reasoning + audit output against the 6 retrieved chunks.
-
-- Finds 8 of 9 claims have direct chunk support
-- `overall_grounding_score: 89`
-- `hallucination_risk: LOW`
-
----
-
-**Step 9 — Critic Node**
-
-Reviews all outputs. Finds one issue: "Missing analysis of sanctions for non-compliance with timelines."
-
-- `quality_score: 7`
-- `overall_assessment: PASS_WITH_REVISIONS`
-
-Since assessment is not "FAIL", `route_after_critic()` returns `"end"`.
-
----
-
-**Step 10 — Audit Persistence**
-
-`AuditService.create_record()` builds the audit record from the final workflow state and writes to PostgreSQL.
-
-Record saved: `id = a040e06d-...`, `duration_ms = 98320`, `grounding_score = 89`, `risk_level = MEDIUM`.
-
----
-
-**Step 11 — Response returned**
-
-FastAPI returns the structured JSON response with `audit_id`, `session_id`, `final_report`, `citations`, `agent_trace`, `duration_ms`.
-
-The compliance officer has a citation-backed, auditable compliance report in under 2 minutes.
+**Total elapsed time**: ~70–90 seconds
 
 ---
 
 ## 14. Engineering Decisions
 
-### Why FastAPI?
+### LangGraph over Custom Orchestration
 
-- Native async support — critical for concurrent LLM calls and DB operations
-- Pydantic v2 integration — automatic request/response validation
-- OpenAPI schema auto-generated — instant API documentation at `/docs`
-- Lightweight — no ORM framework overhead in the HTTP layer
+**Decision**: Use LangGraph to manage multi-agent workflow state and routing.
 
-### Why LangGraph over LangChain Chains?
+**Why**: LangGraph provides a typed state graph with conditional edges, loop support, and guaranteed state immutability between nodes. Implementing this manually would require significant boilerplate. The critic→reasoning feedback loop in particular benefits from LangGraph's conditional edge routing.
 
-LangGraph provides **stateful, typed, graph-based** workflow control. This is essential because:
+**Alternative considered**: Direct function call chain. Rejected because it provides no loop support, no state tracing, and tightly couples agent logic.
 
-- Agents need to share accumulated state (chunks, reasoning, audit results)
-- Conditional routing is needed (critic can loop back to reasoning)
-- Each node is independently testable
-- State transitions are explicit and auditable
+### Pydantic v2 + FastAPI
 
-Plain LangChain chains are sequential and don't support conditional back-edges or typed shared state cleanly.
+**Decision**: Use Pydantic v2 models for all API boundaries.
 
-### Why Qdrant with Hybrid Search (Dense + Sparse)?
+**Why**: Automatic request validation, serialisation, and OpenAPI schema generation. Type safety at the API boundary reduces an entire class of runtime errors.
 
-Pure semantic search (dense vectors) excels at meaning but misses exact terms like regulation names, section numbers, or specific legal phrases. BM25 (sparse) excels at exact term matching. Combining both via RRF fusion captures both:
+### Hybrid Search (Dense + Sparse)
 
-- Dense: "what are the consumer complaint rules?" → finds semantically related chunks
-- Sparse: "CBN CPR Section 6.3.11" → finds exact section references
+**Decision**: Use both `BAAI/bge-base-en-v1.5` (semantic) and `Qdrant/bm25` (keyword) with RRF fusion.
 
-### Why BAAI/bge-base-en-v1.5?
+**Why**: Legal text retrieval has two distinct patterns:
+1. Semantic queries ("what are my AML obligations") → semantic search wins
+2. Exact term queries ("Payment Service Bank licence requirements") → BM25 wins
 
-- 768 dimensions — sufficient resolution for legal text
-- Normalized embeddings (cosine = dot product) — Qdrant cosine similarity works correctly
-- Runs on CPU — no GPU infrastructure required for MVP
-- Strong performance on domain-specific English text
+Pure semantic search misses exact legal term matches. Pure BM25 misses paraphrased or conceptual queries. Hybrid with RRF gives best-of-both-worlds results, consistently outperforming either alone for regulatory text.
 
-### Why a Cross-Encoder Reranker?
+### Cross-Encoder Reranking
 
-Bi-encoders (like the embedding model) compute query and document embeddings independently. Cross-encoders see both query and document simultaneously via attention, capturing interaction between them. This produces significantly better ranking quality at the cost of being slower (can't pre-compute). Used as a post-retrieval step where latency allows.
+**Decision**: Use `BAAI/bge-reranker-v2-m3` as a second-stage reranker.
 
-### Why gpt-4o-mini over gpt-4o?
+**Why**: First-stage retrieval (vector search) optimises for recall — it returns 15–30 potentially relevant chunks. The cross-encoder reads each (query, chunk) pair together, providing much higher-precision ranking. The top 8 after reranking are significantly more relevant than the top 8 by vector similarity alone.
 
-For MVP/demo purposes, `gpt-4o-mini`:
+**Tradeoff**: The model is 2.27 GB and requires 1–3 seconds CPU time per reranking call. Pre-loading at startup eliminates cold-start latency.
 
-- ~10× cheaper than `gpt-4o`
-- Sufficient reasoning quality for structured JSON output tasks
-- ~2–3× faster response times
-- Configurable — swap to `gpt-4o` or `gpt-4-turbo` for production
+### Section-Aware Chunking
 
-### Why Python `TypedDict` for LangGraph State (not Pydantic)?
+**Decision**: Custom legal chunker rather than generic `RecursiveCharacterTextSplitter`.
 
-LangGraph's `StateGraph` requires `TypedDict` for state definitions. This is a framework constraint — LangGraph performs internal state merging that is incompatible with Pydantic's validation model.
+**Why**: Generic text splitters break mid-section, destroying the legal context. A clause split across two chunks loses meaning. The custom chunker emits one chunk per legal section, preserving section numbers, page references, and hierarchy. This is critical for citation accuracy.
 
-### Why Synchronous Embeddings (no `await`)?
+### Per-Request Cost Tracking via ContextVars
 
-`sentence-transformers` uses PyTorch under the hood and is CPU-bound (not I/O-bound). Running it synchronously is correct — making it async would add overhead without benefit, and wrapping in `asyncio.run_in_executor` would be premature optimization for MVP.
+**Decision**: Use Python `contextvars.ContextVar` for LLM cost accumulation.
 
-### Why `total=False` on AgentState?
+**Why**: Multiple concurrent requests each run their own async task. A global variable would create race conditions. Thread-local storage does not apply to asyncio. `ContextVar` provides true per-async-task isolation — each `workflow.ainvoke()` call gets its own cost accumulator across all 6 LLM calls.
 
-```python
-class AgentState(TypedDict, total=False):
-```
+### Parallel Orchestrator + Jurisdiction Mapper
 
-`total=False` means all keys are optional. This is correct because the state is built incrementally — early nodes don't have `reasoning_result` or `audit_result` yet. Without `total=False`, TypedDict would require all keys to be present at all times.
+**Decision**: Run orchestrator and jurisdiction mapper simultaneously with `asyncio.gather()`.
+
+**Why**: Both are LLM calls (~10s each) with completely independent inputs and no dependency on each other's outputs. Running sequentially would add 8–12 unnecessary seconds to every request.
+
+### In-Memory Report Store (MVP)
+
+**Decision**: `_reports: dict[str, dict]` in the analysis route module.
+
+**Why**: Simple, zero-dependency, works for a single-process MVP. The alternative (Redis) adds operational complexity without adding value for a single-node demonstration.
+
+**Limitation**: Reports are lost on process restart. This is the number one production migration item.
+
+### Polling over WebSockets
+
+**Decision**: Client polls `GET /analyze/report/{id}` every 3 seconds.
+
+**Why**: Simpler to implement and debug than WebSockets. The workflow is 60–120 seconds — the difference between 3-second polling and real-time push is negligible UX impact. SSE (`/stream`) is available as an alternative for clients that prefer push semantics.
 
 ---
 
 ## 15. Technical Debt & Risks
 
-### P0 — Must fix before production
+### Critical (Must Fix Before Production)
 
-| Issue                               | Risk                                                         | Location                       |
-| ----------------------------------- | ------------------------------------------------------------ | ------------------------------ |
-| **No authentication**               | Any user can submit queries and read all audit records       | All API routes                 |
-| **No rate limiting**                | LLM API costs unbounded; potential DoS via expensive queries | `/analysis/analyze-business`   |
-| **`create_all` instead of Alembic** | Schema changes will not migrate existing databases           | `app/db/postgres.py:init_db()` |
-| **OPENAI_API_KEY in .env**          | If `.env` is committed or exposed, key is leaked             | `.env` / deployment            |
+| Issue | Risk | Fix |
+|---|---|---|
+| No authentication implementation | Any user can access all data and trigger workflows | Implement JWT validation in `get_optional_user` / `get_current_user` |
+| In-memory `_reports` dict | Reports lost on restart; not shareable across workers | Replace with Redis |
+| `create_all()` instead of Alembic migrations | Schema changes require manual intervention or data loss | Set up Alembic migration files |
+| No rate limiting | Malicious actor can trigger unlimited LLM calls (cost) | Add `slowapi` or API gateway rate limiting |
+| No input sanitisation beyond length validation | Prompt injection via `business_description` | Add content filtering or sanitisation layer |
 
-### P1 — Should fix soon
+### High Priority
 
-| Issue                               | Risk                                                                               | Location                      |
-| ----------------------------------- | ---------------------------------------------------------------------------------- | ----------------------------- |
-| **No test suite**                   | Regressions undetected; agents untestable in isolation                             | `tests/` (empty)              |
-| **No CORS configuration**           | Browser-based frontends blocked or open to all origins                             | `app/main.py`                 |
-| **Reranker cold start**             | First request takes 4+ minutes to download 2.27GB model                            | `app/utils/reranking.py`      |
-| **Orchestrator prompt duplication** | Two versions of `ORCHESTRATOR_SYSTEM_PROMPT` in same file (second overrides first) | `app/prompts/orchestrator.py` |
-| **Redis dormant**                   | Provisioned but unused — no caching or session persistence                         | `docker-compose.yml`          |
+| Issue | Risk | Fix |
+|---|---|---|
+| Reranker blocks event loop | Concurrent requests during reranking experience latency | Move to thread pool executor or separate process |
+| No document deletion from Qdrant | `DELETE /regulations/{id}` removes PostgreSQL record but leaves vectors | Add `vector_repository.delete_by_document(name)` |
+| No tests beyond smoke test | Regressions go undetected | Add pytest unit tests for chunker, retrieval service, agent parsing |
+| Report ID not in persistent store | GET /report/{id} returns 404 after restart | Fix via Redis migration |
+| Redis provisioned but unused | Wasted resource | Either implement session caching or remove from docker-compose |
 
-### P2 — Technical debt
+### Medium Priority
 
-| Issue                                       | Notes                                                                                           |
-| ------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| **Inline Pydantic models in routes**        | `AnalysisRequest` defined directly in `analysis.py` — should move to `app/models/requests.py`   |
-| **No request ID / correlation ID**          | Multi-agent logs are hard to trace across concurrent requests                                   |
-| **Synchronous embedding blocks event loop** | `embed_text()` is CPU-bound synchronous; should use `run_in_executor` for production throughput |
-| **`max_iterations` hardcoded to 2**         | Should be a request-level parameter                                                             |
-| **Chunking uses approximate token count**   | `MAX_CHUNK_SIZE = 1000` in chars/4 — real token counts differ                                   |
-| **No embedding model versioning**           | If model changes, re-ingestion of all documents required                                        |
-| **Qdrant `qdrant/qdrant:latest` tag**       | Unpinned version in docker-compose risks breaking changes on pull                               |
+| Issue | Risk | Fix |
+|---|---|---|
+| Query expansion disabled | Slightly lower recall on paraphrased queries | Re-enable with 1 variant to limit latency |
+| Contextual compression disabled | Chunks may contain noise that dilutes reasoning | Re-enable selectively for long chunks |
+| No Qdrant index on `regulator` field | Full scan on regulator filter (acceptable at small scale) | Add `create_payload_index` for regulator field |
+| Duplicate nodes in `nodes.py` | `orchestrator_node` and `jurisdiction_node` exist as dead code | Delete or document as deprecated |
+| No document versioning | Uploading a new version requires manual delete + re-upload | Add version field and supersession logic |
 
-### Bottlenecks
+### Low Priority / Future
 
-1. **LLM sequential pipeline**: 7 agents × (30–180s each) = 90–120s total. Not parallelizable without architectural changes (each agent depends on prior output).
-2. **Cross-encoder reranker on CPU**: 2.27GB model, CPU inference — scales poorly under concurrent load.
-3. **Single Qdrant instance**: No replication; single point of failure for retrieval.
-4. **Synchronous database session per request**: Connection pool (size=10, max_overflow=20) limits concurrency.
+| Issue | Description |
+|---|---|
+| No streaming LLM responses | Agents wait for full LLM response before proceeding |
+| No caching of retrieval results | Same query retrieves from Qdrant every time |
+| No multi-language support | Only English regulatory documents supported |
+| No document freshness alerts | No notification when a regulation document is superseded |
 
 ---
 
 ## 16. Future Roadmap
 
-### Near-Term (MVP → Production)
+### Phase 1: Production Hardening
 
-1. **Authentication & RBAC** — JWT tokens, user management, organization-level access control
-2. **Alembic migrations** — versioned database schema management
-3. **Test suite** — unit tests for agents (mock LLM), integration tests for API routes, RAG pipeline evaluation
-4. **Rate limiting** — per-user and per-organization request quotas
-5. **Model warm-up** — pre-load reranker and embedding models at startup, not on first request
-6. **Streaming responses** — stream agent progress to the client in real-time via SSE/WebSocket
+- Implement JWT authentication with user management
+- Replace in-memory `_reports` with Redis
+- Set up Alembic migrations
+- Add rate limiting (e.g., 10 analyses/hour per API key)
+- Add Sentry for error tracking
+- Containerise the FastAPI app + Chainlit into Docker images
+- Set up GitHub Actions CI (lint + test on every PR)
 
-### Medium-Term (Scale & Quality)
+### Phase 2: Capability Expansion
 
-7. **Chainlit frontend** — Regulatory Intelligence Console with agent trace visualization
-8. **Redis session management** — persistent conversation sessions, query caching
-9. **More regulators** — FCCPC, NITDA, NDPA, BOFIA documents
-10. **Compliance gap analysis endpoint** — upload company policy docs; compare against regulations
-11. **Evaluation framework** — RAG evaluation with RAGAS (faithfulness, answer relevance, context precision)
-12. **LLM cost tracking** — per-request token usage tracked and stored
-13. **Async embedding** — `run_in_executor` for CPU-bound embedding to unblock event loop
+- **Broader regulator coverage**: NAICOM (insurance), NCC (telecoms/USSD), PenCom (pensions), NDIC resolution framework
+- **Document freshness alerts**: Detect when a regulation in Qdrant has been superseded by a newer upload and flag outdated citations
+- **Multi-document conflict detection**: Explicitly surface cases where two indexed regulations contradict each other
+- **Regulatory change monitoring**: Crawl CBN/SEC websites for new circulars; trigger re-analysis if a change affects indexed content
+- **Conversation follow-up**: Allow users to ask follow-up questions within the same session, building on prior analysis context
 
-### Long-Term (Platform)
+### Phase 3: Platform Features
 
-14. **Multi-tenancy** — Organization isolation, custom document collections per client
-15. **Regulatory monitoring** — watch regulator websites for new circulars/guidelines; auto-ingest and notify
-16. **Compliance workflow integration** — export reports to compliance management systems (e.g., Jira, Confluence)
-17. **Fine-tuned embedding model** — domain-adapted embedding model trained on Nigerian legal text
-18. **Graph-based regulatory knowledge** — regulatory knowledge graph linking regulations, sections, entities
-19. **Audit trail API for third parties** — signed, exportable audit records for regulatory submission
-20. **Mobile app** — compliance officer mobile interface for on-the-go analysis
+- **Multi-tenant support**: Organisation-level accounts; each org has isolated audit history
+- **Team collaboration**: Share reports, comment on findings, assign remediation tasks
+- **Regulatory calendar**: Track filing deadlines, renewal dates, and reporting obligations extracted from indexed documents
+- **API access tier**: REST API for enterprise customers to integrate compliance checks into their own workflows
+- **Batch analysis**: Upload a portfolio of products/entities and generate compliance reports for all
+- **Custom document libraries**: Per-organisation private document stores for internal policies
+
+### Phase 4: Intelligence Enhancements
+
+- **Agentic document scraping**: Automatically download and ingest new regulations from CBN/SEC/FIRS portals
+- **Precedent and enforcement tracking**: Index CBN/SEC enforcement actions and surface similar precedents when analysing risk
+- **Cross-jurisdictional analysis**: Extend beyond Nigeria to ECOWAS harmonised regulations and international standards (FATF, PCI-DSS, GDPR)
+- **Fine-tuned models**: Fine-tune a smaller model (7B) on Nigerian regulatory text to reduce OpenAI dependency and cost
 
 ---
 
@@ -1434,32 +1449,41 @@ class AgentState(TypedDict, total=False):
 
 ### Prerequisites
 
-| Requirement    | Version | Install                                            |
-| -------------- | ------- | -------------------------------------------------- |
-| Python         | 3.12+   | `brew install python@3.12`                         |
-| uv             | Latest  | `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
-| Docker Desktop | Latest  | [docker.com](https://docker.com)                   |
-| Tesseract OCR  | Latest  | `brew install tesseract`                           |
+| Requirement | Version | Install |
+|---|---|---|
+| Python | 3.12+ | python.org or `pyenv` |
+| uv | Latest | `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
+| Docker Desktop | Latest | docker.com |
+| Tesseract OCR | Latest | `brew install tesseract` (macOS) |
+| git | Any | Pre-installed on most systems |
 
-### 1. Clone and Install
+### Step 1: Clone and Install
 
 ```bash
-git clone <repo-url>
-cd regulatory-intelligence-platform
+git clone git@github.com:faniyi-akinbobola/Regulatory-Intelligence-Platform.git
+cd Regulatory-Intelligence-Platform
 
-# Create virtual environment and install all dependencies
+# Install all Python dependencies
 uv sync
 
 # Activate virtual environment
 source .venv/bin/activate
 ```
 
-### 2. Configure Environment
-
-Create a `.env` file in the project root:
+### Step 2: Configure Environment
 
 ```bash
-# PostgreSQL
+cp .env.example .env
+# Edit .env with your values
+```
+
+Required values:
+
+```bash
+# OpenAI (required unless using Ollama)
+OPENAI_API_KEY=sk-proj-...
+
+# PostgreSQL (defaults match docker-compose.yml)
 POSTGRES_USER=regplatform
 POSTGRES_PASSWORD=regpassword1111
 POSTGRES_DB=regulatory_db
@@ -1476,123 +1500,101 @@ REDIS_PORT=6379
 
 # LLM
 LLM_PROVIDER=openai
-OPENAI_API_KEY=sk-proj-<your-key>
 OPENAI_MODEL=gpt-4o-mini
 
-# Embedding
+# Embeddings
 EMBEDDING_MODEL_NAME=BAAI/bge-base-en-v1.5
 EMBEDDING_DIMENSION=768
 ```
 
-### 3. Start Infrastructure
+### Step 3: Start Infrastructure
 
 ```bash
 docker compose up -d
-
-# Verify all services are running
-docker compose ps
-
-# Verify Qdrant
-curl http://localhost:6333/healthz
-
-# Verify PostgreSQL
-docker exec -it postgres psql -U regplatform -d regulatory_db -c "\dt"
 ```
 
-### 4. Start the Application
+### Step 4: Start the Backend
 
 ```bash
-uvicorn app.main:app --reload
+# Option A — convenience script (handles port cleanup automatically)
+bash server.sh          # start
+bash server.sh stop     # kill server on port 8000
+bash server.sh status   # show what's running on port 8000
+
+# Option B — direct uvicorn (do NOT use --reload, it causes duplicate lifespan events)
+uvicorn app.main:app --port 8000
 ```
 
-On startup you should see:
-
+Expected output:
 ```
 Starting up Regulatory Intelligence Platform...
 PostgreSQL tables ready
 Qdrant collection ready
+Reranker model loaded     <- downloads 2.27 GB on first run (takes several minutes)
 ```
 
-### 5. Ingest a Regulation Document
+### Step 5: Ingest Regulatory Documents
 
 ```bash
 curl -X POST http://localhost:8000/regulations/upload \
-  -F "file=@/path/to/CBN_Consumer_Protection.pdf" \
+  -F "file=@path/to/CBN_Consumer_Protection.pdf" \
   -F "regulator=CBN" \
   -F "document_type=Regulation" \
   -F "issued_date=2019-12-20"
 ```
 
-### 6. Test the Analysis Endpoint
+### Step 6: Start the UI
 
 ```bash
-curl -s -X POST http://localhost:8000/analysis/analyze-business \
-  -H "Content-Type: application/json" \
-  -d '{
-    "query": "What complaint resolution timelines apply to a digital bank?",
-    "organization_context": "Digital bank with retail customers"
-  }' | python3 -m json.tool
+# Second terminal
+source .venv/bin/activate
+chainlit run chainlit_app.py --port 8080
 ```
 
-### 7. Access PostgreSQL Audit Records
+Open `http://localhost:8080`.
+
+### Step 7: Run Tests
 
 ```bash
-# Connect to database
-docker exec -it postgres psql -U regplatform -d regulatory_db
+# Full async route test suite (12 tests — requires running server + infrastructure)
+python test_routes.py
 
-# Useful queries
-SELECT id, session_id, overall_risk_level, grounding_score, duration_ms, created_at
-FROM audit_records
-ORDER BY created_at DESC
-LIMIT 10;
-
-SELECT * FROM documents;
-
-\q
+# Bash smoke tests (curl-based, good for CI)
+bash test_smoke.sh
 ```
 
-### 8. Developer Workflow
+### Example Queries
 
+The repository includes `Example-Queries.md` with 50 pre-written example inputs:
+- **25 business model analysis queries** — covering digital lending, wallets, capital markets, insurance tech, crypto, agent banking, and more
+- **25 compliance gap analysis queries** — covering specific regulatory obligations, missing licences, AML/CFT gaps, and data protection
+
+Use these to demo the platform or validate retrieval quality after ingesting documents.
+
+### Common Developer Workflows
+
+**Reset the vector store:**
 ```bash
-# Check Qdrant indexed chunks
-curl -X POST http://localhost:6333/collections/regulations/points/scroll \
-  -H "Content-Type: application/json" \
-  -d '{"limit": 10, "with_payload": true, "with_vector": false}'
-
-# Tail application logs while running a test
-# (run uvicorn in foreground, then curl in another terminal)
-
-# Reset Qdrant collection (drops all indexed data — re-ingest required)
-# python scripts/reset_collection.py
-
-# Install a new dependency
-uv add <package-name>
+python scripts/reset_collection.py
+# Then re-ingest all documents
 ```
 
-### 9. Switching to Local LLM (Ollama)
-
+**View recent audit records:**
 ```bash
-# Install Ollama: https://ollama.com
-# Pull models
-ollama pull qwen2.5:14b
-ollama pull qwen2.5:7b
-
-# Update .env
-LLM_PROVIDER=ollama
-LLM_BASE_URL=http://localhost:11434
-LLM_MODEL_NAME=qwen2.5:14b
-LLM_SMALL_MODEL_NAME=qwen2.5:7b
+docker exec -it postgres psql -U regplatform -d regulatory_db \
+  -c "SELECT id, overall_risk_level, grounding_score, duration_ms, created_at FROM audit_records ORDER BY created_at DESC LIMIT 10;"
 ```
 
-### Common Issues
+**View indexed documents:**
+```bash
+curl http://localhost:8000/regulations/ | python3 -m json.tool
+```
 
-| Issue                          | Cause                               | Fix                                                          |
-| ------------------------------ | ----------------------------------- | ------------------------------------------------------------ |
-| First request takes 4+ minutes | Reranker model downloading (2.27GB) | Wait; subsequent requests are fast (model cached)            |
-| `No text extracted from PDF`   | Scanned image PDF                   | Ensure Tesseract is installed: `brew install tesseract`      |
-| `409 Conflict` on upload       | Same PDF already ingested           | Document already in system; this is by design                |
-| `Connection refused :6333`     | Qdrant not running                  | `docker compose up -d qdrant`                                |
-| `422 Unprocessable Entity`     | Wrong request body                  | Check required fields with `curl http://localhost:8000/docs` |
+**Debugging tips:**
+- If the first request takes 4+ minutes, the reranker model is downloading. Wait for it.
+- If `GET /regulations` returns 307, your client needs `follow_redirects=True`
+- If Qdrant returns no results, check that `issued_date` format is ISO (`YYYY-MM-DD`)
+- If agents return "Insufficient regulatory basis", the relevant regulation document may not be ingested
 
 ---
 
@@ -1600,62 +1602,63 @@ LLM_SMALL_MODEL_NAME=qwen2.5:7b
 
 ### Technical Terms
 
-| Term                     | Definition                                                                                                                                                                              |
-| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Agent**                | An LLM-powered module with a specific role in the workflow (e.g., "Auditor Agent"). Each agent receives structured input, calls an LLM, and returns structured output.                  |
-| **AgentState**           | A Python `TypedDict` that holds all data shared across agents in the LangGraph workflow. Each node reads from and writes to this shared state.                                          |
-| **Async**                | A Python programming pattern (`async def`, `await`) that allows multiple operations (DB calls, LLM calls) to run concurrently without blocking, using Python's event loop.              |
-| **BM25**                 | "Best Match 25" — a classic information retrieval scoring formula that scores documents based on term frequency and inverse document frequency. Used for keyword-based search.          |
-| **Cross-encoder**        | A neural network that takes a query and a document as joint input and scores their relevance. More accurate than bi-encoders but slower (can't pre-compute document scores).            |
-| **Dense vector**         | A fixed-length array of floating point numbers representing semantic meaning of text. Two semantically similar texts produce similar dense vectors.                                     |
-| **Dependency injection** | A design pattern where dependencies (e.g., database sessions) are injected into functions/classes from outside rather than created internally. FastAPI's `Depends()` implements this.   |
-| **Embedding**            | The process of converting text into a numeric vector representation. Used to enable semantic search.                                                                                    |
-| **Hallucination**        | When an LLM generates plausible-sounding but factually incorrect information, in this case fabricating regulatory citations that do not exist.                                          |
-| **Hybrid search**        | A retrieval technique combining dense (semantic) and sparse (keyword) search results, typically via Reciprocal Rank Fusion.                                                             |
-| **LangGraph**            | A library built on top of LangChain for creating stateful, directed-graph-based multi-agent AI workflows.                                                                               |
-| **Lifespan**             | A FastAPI feature (`asynccontextmanager`) for running code on application startup and shutdown.                                                                                         |
-| **MMR**                  | Maximal Marginal Relevance — an algorithm for selecting diverse results by penalizing candidates that are too similar to already-selected results.                                      |
-| **Pydantic**             | A Python library for data validation using type annotations. Used for request/response models and configuration settings.                                                               |
-| **RAG**                  | Retrieval-Augmented Generation — an AI architecture that retrieves relevant context from a knowledge base before asking an LLM to generate an answer, grounding responses in real data. |
-| **RRF**                  | Reciprocal Rank Fusion — a technique for combining ranked lists from multiple retrieval systems into a single merged ranking.                                                           |
-| **Sparse vector**        | A vector where most values are zero, with non-zero values at positions corresponding to specific vocabulary terms. BM25 produces sparse vectors.                                        |
-| **SQLAlchemy**           | Python ORM (Object-Relational Mapper) for interacting with relational databases using Python objects instead of raw SQL.                                                                |
-| **TypedDict**            | A Python type hint construct for dictionaries with known, typed keys. Used for LangGraph's `AgentState`.                                                                                |
-| **uvicorn**              | An ASGI (Asynchronous Server Gateway Interface) web server for Python. Runs the FastAPI application.                                                                                    |
-| **uv**                   | A fast Python package manager and virtual environment tool (replacement for pip + venv).                                                                                                |
+| Term | Definition |
+|---|---|
+| **Agent** | An LLM-powered function with a specific role that takes structured input, calls an LLM with a domain-specific prompt, and returns structured JSON output |
+| **AgentState** | The shared `TypedDict` that flows through the LangGraph workflow, accumulating agent outputs at each node |
+| **asyncio.gather** | Python async primitive that runs multiple coroutines concurrently in the same event loop |
+| **BM25** | Best Match 25 — a statistical text ranking algorithm based on term frequency and inverse document frequency. Used for keyword-based search in Qdrant's sparse vector index |
+| **Chainlit** | Python framework for building AI-powered conversational interfaces with step visualisation, file uploads, and action buttons |
+| **Chunk / DocumentChunk** | A section of a regulatory document, bounded by legal section headers, carrying metadata (page, section, regulator, hierarchy) |
+| **ContextVar** | Python mechanism for storing per-async-task state. Used here to isolate LLM cost tracking between concurrent workflow invocations |
+| **Cross-encoder** | A reranking model that scores (query, document) pairs jointly — more accurate than bi-encoder similarity for relevance but slower |
+| **Dense vector** | A fixed-size floating-point vector (768 dimensions) produced by a neural embedding model. Captures semantic meaning |
+| **FastAPI** | Modern Python async web framework built on Starlette. Used for the REST API layer |
+| **Freshness scoring** | A multiplier (0.80–1.0) applied to retrieved chunk scores based on document age. Newer documents are scored higher |
+| **LangGraph** | Library from LangChain that enables stateful, multi-step LLM workflows with typed state graphs, conditional edges, and loop support |
+| **Lifespan** | FastAPI's startup/shutdown hook mechanism using an async context manager |
+| **MMR (Maximal Marginal Relevance)** | A diversity algorithm that prevents returning multiple chunks from the same section, promoting cross-document variety |
+| **Modular monolith** | An architecture pattern where the codebase is a single deployable unit with clear internal layer boundaries, as opposed to microservices |
+| **Pydantic** | Python data validation library used for request/response models and settings |
+| **RAG (Retrieval-Augmented Generation)** | A technique that grounds LLM outputs in retrieved external documents, preventing hallucinations |
+| **RRF (Reciprocal Rank Fusion)** | An algorithm that combines ranked lists from multiple search systems by summing the reciprocal of each item's rank position |
+| **Sparse vector** | A high-dimensional vector with mostly zero values. Used for BM25 keyword matching in Qdrant |
+| **SQLAlchemy** | Python ORM and SQL toolkit. Used with asyncpg for async PostgreSQL access |
+| **TypedDict** | Python type hint for dictionaries with fixed keys and value types. Used for `AgentState` |
+| **uv** | A fast Python package manager written in Rust (by Astral). Replaces pip + virtualenv |
 
-### Domain / Business Terms
+### Domain Terms
 
-| Term                | Definition                                                                                                                                               |
-| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **AML/CFT**         | Anti-Money Laundering / Countering the Financing of Terrorism — regulatory obligations for financial institutions                                        |
-| **BOFIA**           | Banks and Other Financial Institutions Act — primary legislation governing banks in Nigeria                                                              |
-| **CBN**             | Central Bank of Nigeria — primary regulator for banks, payment service providers, and financial institutions                                             |
-| **CAMA**            | Companies and Allied Matters Act — governs corporate entities in Nigeria                                                                                 |
-| **Compliance gap**  | A specific area where a business's current operations or policies fall short of regulatory requirements                                                  |
-| **FCCPC**           | Federal Competition and Consumer Protection Commission — consumer protection regulator                                                                   |
-| **FIRS**            | Federal Inland Revenue Service — Nigeria's federal tax authority                                                                                         |
-| **Fintech**         | Financial technology — companies using technology to deliver financial services                                                                          |
-| **Grounding score** | A metric (0–100%) produced by the Citation Verifier agent indicating what percentage of claims in the analysis are backed by retrieved regulatory text.  |
-| **KYC**             | Know Your Customer — regulatory obligation to verify customer identity                                                                                   |
-| **NDIC**            | Nigeria Deposit Insurance Corporation — regulates deposit insurance for banks                                                                            |
-| **NDPA**            | Nigeria Data Protection Act — data protection regulation                                                                                                 |
-| **NITDA**           | National Information Technology Development Agency — IT and data governance regulator                                                                    |
-| **PSB**             | Payment Service Bank — a category of licensed institution under CBN regulations                                                                          |
-| **SEC Nigeria**     | Securities and Exchange Commission Nigeria — regulates capital markets and investment products                                                           |
-| **SRC**             | Summary Resolution Communication — a required communication to customers upon resolving their complaint, mandated by CBN Consumer Protection Regulations |
-
-### Internal Terminology
-
-| Term                       | Definition                                                                                                                                                                    |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Audit record**           | A PostgreSQL row in `audit_records` capturing the complete state of a workflow run — all agent outputs, citations, timing, and risk scores.                                   |
-| **Audit trace**            | The `agent_trace` field in an audit record — an ordered list showing which agents executed and in what sequence.                                                              |
-| **Chunk**                  | A semantically coherent section of a regulatory document, produced by the chunking pipeline and stored as a vector in Qdrant.                                                 |
-| **Contextual compression** | Step 7 of the RAG pipeline — using an LLM to reduce each retrieved chunk to only the sentences relevant to the query.                                                         |
-| **Critic loop**            | When the Critic agent assigns `overall_assessment: FAIL`, the workflow routes back to the Reasoning agent for refinement. Max 2 iterations by default.                        |
-| **Freshness penalty**      | A score multiplier (0.80–1.00) applied to chunks based on the age of their source document — older documents are ranked slightly lower.                                       |
-| **Ingestion pipeline**     | The full process of converting a PDF into indexed, searchable vectors: parse → chunk → embed → store.                                                                         |
-| **Query expansion**        | Step 1 of the RAG pipeline — using an LLM to generate 2 legal rephrasings of the user's query, improving retrieval recall.                                                    |
-| **Session**                | A UUID linking multiple `/analyze-business` calls for the same investigation. In MVP, session IDs are request-scoped (one per call unless provided explicitly by the caller). |
-| **Workflow**               | The compiled LangGraph `StateGraph` that orchestrates the 7-agent sequence for a single compliance analysis request.                                                          |
+| Term | Definition |
+|---|---|
+| **AML/CFT** | Anti-Money Laundering / Countering the Financing of Terrorism — regulatory obligations to detect and report suspicious financial activity |
+| **BOFIA** | Banks and Other Financial Institutions Act — primary legislation governing Nigerian banks, supervised by CBN |
+| **CBN** | Central Bank of Nigeria — Nigeria's apex financial regulator for banking, payments, forex, and monetary policy |
+| **CIS** | Collective Investment Scheme — a pooled investment vehicle (mutual fund, unit trust) regulated by SEC Nigeria |
+| **Compliance Gap** | A specific area where a business's current practices do not meet a regulatory requirement |
+| **DMB** | Deposit Money Bank — a full commercial bank licensed by CBN (e.g., Access Bank, GTBank) |
+| **EFCC** | Economic and Financial Crimes Commission — enforces AML/CFT and financial crimes laws in Nigeria |
+| **FCCPC** | Federal Competition and Consumer Protection Commission — enforces consumer rights and competition law |
+| **FIRS** | Federal Inland Revenue Service — Nigeria's federal tax authority |
+| **Grounding score** | 0–100 percentage of claims in a compliance report that are directly supported by retrieved regulatory text |
+| **Hallucination** | An LLM generating a confident-sounding but factually incorrect or unsupported claim |
+| **ISA 2025** | Investments and Securities Act 2025 — the primary legislation governing Nigerian capital markets, supervised by SEC Nigeria |
+| **KYC** | Know Your Customer — identity verification obligations imposed on financial institutions |
+| **MFB** | Microfinance Bank — a tier of CBN-licensed financial institution serving unbanked/underbanked segments |
+| **MLPPA** | Money Laundering (Prevention and Prohibition) Act — primary AML legislation in Nigeria |
+| **NDIC** | Nigeria Deposit Insurance Corporation — insures bank deposits and handles bank resolution |
+| **NDPA** | Nigeria Data Protection Act 2023 — Nigeria's primary data protection legislation |
+| **NFIU** | Nigerian Financial Intelligence Unit — the national body for AML/CFT reporting, suspicious transaction reports |
+| **NCC** | Nigerian Communications Commission — regulates telecoms, including USSD-based fintech |
+| **NITDA** | National Information Technology Development Agency — enforces IT standards and data protection frameworks |
+| **PenCom** | National Pension Commission — regulates pension fund administrators and RSA schemes |
+| **PSB** | Payment Service Bank — a CBN licence category for mobile-money focused financial institutions |
+| **PSSP** | Payment Solution Service Provider — a CBN category for payment processing infrastructure providers |
+| **Regulator** | A government body with statutory authority to license, supervise, and enforce rules in a specific sector |
+| **Risk level** | Classification of compliance risk: CRITICAL (licence/criminal exposure) → HIGH → MEDIUM → LOW |
+| **SEC Nigeria** | Securities and Exchange Commission Nigeria — regulates capital markets, investment schemes, and VASPs |
+| **SCUML** | Special Control Unit Against Money Laundering — part of EFCC, registers and supervises DNFBPs |
+| **Session ID** | A UUID that groups all analyses performed in a single Chainlit chat session, linking them in the audit database |
+| **Structural conflict** | A situation where a described business feature is fundamentally incompatible with the available licence category |
+| **VASP** | Virtual Asset Service Provider — an entity dealing in crypto assets, regulated by SEC Nigeria |
+| **Workflow** | The sequential execution of all 6 LangGraph nodes that transforms a user query into a structured compliance report |
